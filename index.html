@@ -5,49 +5,113 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Evaluación del Paciente</title>
 
+<!-- FUENTES Y ESTILO MODERNO -->
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+
 <style>
 body {
-    font-family: Arial;
+    font-family: 'Roboto', Arial, sans-serif;
+    background: #f0f4f8;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+header {
+    background: #4a90e2;
+    color: white;
+    padding: 20px;
     text-align: center;
-    background: #f5f5f5;
+    font-size: 28px;
+    font-weight: 700;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+input, button {
+    padding: 10px;
+    font-size: 16px;
+    margin: 5px;
+}
+
+button {
+    background: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #357ABD;
+}
+
+h2 {
+    color: #4a90e2;
+    margin-top: 20px;
+}
+
+.habilidades-list div {
+    margin: 8px 0;
 }
 
 .card {
     background: white;
-    margin: 15px auto;
-    padding: 15px;
     border-radius: 15px;
-    width: 300px;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+    padding: 15px;
+    margin: 15px 0;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-img {
-    width: 120px;
+.card img {
+    width: 150px;
+    margin: 10px 0;
+    border-radius: 10px;
 }
 
-video {
+.card video {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 10px;
     margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+    .card {
+        width: 90%;
+    }
 }
 </style>
 </head>
 
 <body>
 
-<h1>Evaluación del Paciente</h1>
+<header>Evaluación del Paciente</header>
 
-<input type="number" id="edad" placeholder="Edad">
-<button onclick="evaluar()">Evaluar</button>
+<div class="container">
+    <div>
+        <input type="number" id="edad" placeholder="Edad">
+        <button onclick="evaluar()">Evaluar</button>
+    </div>
 
-<div id="habilidades"></div>
+    <div class="habilidades-list" id="habilidades"></div>
 
-<br>
-<button onclick="recomendar()">Recomendar ejercicios</button>
+    <button onclick="recomendar()">Recomendar ejercicios</button>
 
-<div id="resultados"></div>
+    <div id="resultados"></div>
+</div>
 
 <script>
-
-// HABILIDADES (tu Python convertido)
+// HABILIDADES POR EDAD
 function obtenerHabilidades(edad){
     if(edad >= 12){
         return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];
@@ -88,6 +152,46 @@ const ejercicios = {
         texto: "Practicar escritura",
         img: "escribir.png",
         video: "escribir.mp4"
+    },
+    "resolver problemas matematicos": {
+        texto: "Ejercicios de matemáticas simples",
+        img: "matematicas.png",
+        video: "matematicas.mp4"
+    },
+    "desarrollar habilidades sociales": {
+        texto: "Juegos grupales y comunicación",
+        img: "social.png",
+        video: "social.mp4"
+    },
+    "tomar decisiones": {
+        texto: "Actividades de elección y consecuencias",
+        img: "decidir.png",
+        video: "decidir.mp4"
+    },
+    "planificar el futuro": {
+        texto: "Pequeños proyectos y metas",
+        img: "plan.png",
+        video: "plan.mp4"
+    },
+    "decir palabras sencillas": {
+        texto: "Repetir palabras y canciones",
+        img: "palabras.png",
+        video: "palabras.mp4"
+    },
+    "girar la cabeza": {
+        texto: "Ejercicios de seguimiento visual",
+        img: "cabeza.png",
+        video: "cabeza.mp4"
+    },
+    "sonreir": {
+        texto: "Juegos de expresión facial",
+        img: "sonreir.png",
+        video: "sonreir.mp4"
+    },
+    "llorar": {
+        texto: "Reconocer emociones",
+        img: "llorar.png",
+        video: "llorar.mp4"
     }
 };
 
@@ -120,25 +224,27 @@ function recomendar(){
         let h = el.value;
         let info = ejercicios[h];
 
-        if(info){
-            resultados.innerHTML += `
-                <div class="card">
-                    <h3>${h}</h3>
-                    <p>${info.texto}</p>
-
-                    <img src="${info.img}">
-
-                    <video controls width="200">
-                        <source src="${info.video}" type="video/mp4">
-                    </video>
-                </div>
-            `;
-        } else {
-            resultados.innerHTML += `<p>No hay recomendación para ${h}</p>`;
+        // Si no hay info, crear recomendación genérica
+        if(!info){
+            info = {
+                texto: "Realizar actividad relacionada con: " + h,
+                img: "default.png",
+                video: "default.mp4"
+            };
         }
+
+        resultados.innerHTML += `
+            <div class="card">
+                <h3>${h}</h3>
+                <p>${info.texto}</p>
+                <img src="${info.img}" alt="${h}">
+                <video controls>
+                    <source src="${info.video}" type="video/mp4">
+                </video>
+            </div>
+        `;
     });
 }
-
 </script>
 
 </body>
