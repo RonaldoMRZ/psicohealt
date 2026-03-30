@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluación del Paciente</title>
+
+<style>
+body {
+    font-family: Arial;
+    text-align: center;
+    background: #f5f5f5;
+}
+
+.card {
+    background: white;
+    margin: 15px auto;
+    padding: 15px;
+    border-radius: 15px;
+    width: 300px;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+}
+
+img {
+    width: 120px;
+}
+
+video {
+    margin-top: 10px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Evaluación del Paciente</h1>
+
+<input type="number" id="edad" placeholder="Edad">
+<button onclick="evaluar()">Evaluar</button>
+
+<div id="habilidades"></div>
+
+<br>
+<button onclick="recomendar()">Recomendar ejercicios</button>
+
+<div id="resultados"></div>
+
+<script>
+
+// HABILIDADES (tu Python convertido)
+function obtenerHabilidades(edad){
+    if(edad >= 12){
+        return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];
+    } else if(edad >= 10){
+        return ["escribir","resolver problemas matematicos"];
+    } else if(edad >= 5){
+        return ["saltar","dibujar","hablar"];
+    } else if(edad >= 2){
+        return ["caminar","decir palabras sencillas"];
+    } else {
+        return ["girar la cabeza","sonreir","llorar"];
+    }
+}
+
+// EJERCICIOS + IMAGEN + VIDEO
+const ejercicios = {
+    "caminar": {
+        texto: "Caminar con apoyo",
+        img: "caminar.png",
+        video: "caminar.mp4"
+    },
+    "hablar": {
+        texto: "Practicar palabras",
+        img: "hablar.png",
+        video: "hablar.mp4"
+    },
+    "saltar": {
+        texto: "Saltos en colchoneta",
+        img: "saltar.png",
+        video: "saltar.mp4"
+    },
+    "dibujar": {
+        texto: "Dibujar con colores",
+        img: "dibujar.png",
+        video: "dibujar.mp4"
+    },
+    "escribir": {
+        texto: "Practicar escritura",
+        img: "escribir.png",
+        video: "escribir.mp4"
+    }
+};
+
+let habilidadesActuales = [];
+
+// MOSTRAR HABILIDADES
+function evaluar(){
+    let edad = document.getElementById("edad").value;
+    let contenedor = document.getElementById("habilidades");
+    contenedor.innerHTML = "";
+
+    habilidadesActuales = obtenerHabilidades(edad);
+
+    habilidadesActuales.forEach(h => {
+        contenedor.innerHTML += `
+            <div>
+                <input type="checkbox" value="${h}"> ${h}
+            </div>
+        `;
+    });
+}
+
+// RECOMENDACIONES
+function recomendar(){
+    let seleccionados = document.querySelectorAll("input[type=checkbox]:checked");
+    let resultados = document.getElementById("resultados");
+    resultados.innerHTML = "";
+
+    seleccionados.forEach(el => {
+        let h = el.value;
+        let info = ejercicios[h];
+
+        if(info){
+            resultados.innerHTML += `
+                <div class="card">
+                    <h3>${h}</h3>
+                    <p>${info.texto}</p>
+
+                    <img src="${info.img}">
+
+                    <video controls width="200">
+                        <source src="${info.video}" type="video/mp4">
+                    </video>
+                </div>
+            `;
+        } else {
+            resultados.innerHTML += `<p>No hay recomendación para ${h}</p>`;
+        }
+    });
+}
+
+</script>
+
+</body>
+</html>
