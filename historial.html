@@ -99,6 +99,7 @@ button {
 <script>
 
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+let pacienteActivo = null;
 
 // CREAR PACIENTE
 function guardarPaciente(){
@@ -120,12 +121,28 @@ function guardarPaciente(){
     mostrarPacientes();
 }
 
-// AGREGAR REGISTRO (SEGUIMIENTO)
-function agregarRegistro(index){
-    let puede = prompt("¿Qué cosas puede hacer? (separa con coma)");
-    let noPuede = prompt("¿Qué cosas NO puede hacer?");
+// MOSTRAR FORMULARIO
+function mostrarFormulario(index){
+    pacienteActivo = index;
 
-    if(!puede && !noPuede) return;
+    let form = document.getElementById("formRegistro");
+
+    form.innerHTML = `
+        <h3>Nuevo registro para ${pacientes[index].nombre}</h3>
+
+        <input type="text" id="puede" placeholder="Qué puede hacer (ej: caminar, hablar)">
+        <br><br>
+        <input type="text" id="noPuede" placeholder="Qué NO puede hacer">
+        <br><br>
+
+        <button onclick="guardarRegistro()">Guardar registro</button>
+    `;
+}
+
+// GUARDAR REGISTRO
+function guardarRegistro(){
+    let puede = document.getElementById("puede").value;
+    let noPuede = document.getElementById("noPuede").value;
 
     let registro = {
         fecha: new Date().toLocaleDateString(),
@@ -133,13 +150,15 @@ function agregarRegistro(index){
         noPuede: noPuede ? noPuede.split(",") : []
     };
 
-    pacientes[index].historial.push(registro);
+    pacientes[pacienteActivo].historial.push(registro);
 
     localStorage.setItem("pacientes", JSON.stringify(pacientes));
+
+    document.getElementById("formRegistro").innerHTML = "";
     mostrarPacientes();
 }
 
-// MOSTRAR
+// MOSTRAR PACIENTES
 function mostrarPacientes(){
     let lista = document.getElementById("lista");
     lista.innerHTML = "";
@@ -162,7 +181,9 @@ function mostrarPacientes(){
                 <h3>${p.nombre}</h3>
                 <p>Edad: ${p.edad}</p>
 
-                <button onclick="agregarRegistro(${i})">➕ Nuevo registro</button>
+                <button onclick="mostrarFormulario(${i})">
+                    ➕ Nuevo registro
+                </button>
 
                 ${historialHTML}
             </div>
