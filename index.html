@@ -5,11 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Evaluación del Paciente</title>
 
-<!-- FUENTE MODERNA -->
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
 
 <style>
-/* RESET Y ESTILO BASE */
 * {
     margin: 0;
     padding: 0;
@@ -31,6 +29,26 @@ header {
     font-weight: 700;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     letter-spacing: 1px;
+    position: relative; /* IMPORTANTE */
+}
+
+/* BOTÓN HISTORIAL */
+.btn-historial {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: white;
+    color: #0288d1;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.btn-historial:hover {
+    background: #e1f5fe;
+    transform: scale(1.05);
 }
 
 /* CONTAINER */
@@ -48,12 +66,6 @@ input[type="number"] {
     border: 2px solid #0288d1;
     border-radius: 8px;
     margin-right: 10px;
-    transition: 0.3s;
-}
-input[type="number"]:focus {
-    outline: none;
-    border-color: #00acc1;
-    box-shadow: 0 0 5px rgba(0,172,193,0.5);
 }
 
 button {
@@ -65,93 +77,71 @@ button {
     font-size: 16px;
     cursor: pointer;
     transition: 0.3s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 button:hover {
     background: #00acc1;
     transform: translateY(-2px);
-    box-shadow: 0 6px 10px rgba(0,0,0,0.15);
 }
 
 /* HABILIDADES */
 .habilidades-list {
     margin-top: 20px;
 }
-.habilidades-list div {
-    margin: 8px 0;
-    font-weight: 500;
-}
 
-/* RESULTADOS */
-#resultados {
-    margin-top: 25px;
-}
-
-/* CARD MODERNO */
+/* CARD */
 .card {
     background: white;
     border-radius: 15px;
     padding: 20px;
     margin: 15px 0;
     box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    transition: 0.3s;
+    text-align: center;
+    animation: fadeIn 0.5s ease;
 }
-.card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-}
+
 .card img {
     width: 150px;
     border-radius: 10px;
     margin: 10px 0;
 }
+
 .card video {
     width: 100%;
     max-width: 400px;
     border-radius: 10px;
-    margin-top: 10px;
 }
 
-/* TITULOS */
-.card h3 {
-    color: #0288d1;
-    margin-bottom: 8px;
-}
-
-/* ANIMACIONES SUAVES */
+/* ANIMACIÓN */
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px);}
     to { opacity: 1; transform: translateY(0);}
-}
-.card {
-    animation: fadeIn 0.5s ease forwards;
 }
 </style>
 </head>
 
 <body>
 
-<header>Evaluación del Paciente</header>
+<header>
+    Evaluación del Paciente
+    <button class="btn-historial" onclick="window.location.href='historial.html'">
+        📋 Historial
+    </button>
+</header>
 
 <div class="container">
-    <div>
-        <input type="number" id="edad" placeholder="Edad">
-        <button onclick="evaluar()">Evaluar</button>
-    </div>
-    <h2>que habilidades carece el paciente<h2>
+    <input type="number" id="edad" placeholder="Edad">
+    <button onclick="evaluar()">Evaluar</button>
+
+    <h2>¿Qué habilidades carece el paciente?</h2>
     <div class="habilidades-list" id="habilidades"></div>
     
     <button onclick="recomendar()">Recomendar ejercicios</button>
-    
 
     <div id="resultados"></div>
 </div>
 
 <script>
-// HABILIDADES POR EDAD
+// HABILIDADES
 function obtenerHabilidades(edad){
     if(edad >= 12){
         return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];
@@ -166,33 +156,22 @@ function obtenerHabilidades(edad){
     }
 }
 
-// EJERCICIOS + IMAGEN + VIDEO
+// EJERCICIOS
 const ejercicios = {
     "caminar": {texto: "Caminar con apoyo", img: "caminar.png", video: "caminar.mp4"},
     "hablar": {texto: "Practicar palabras", img: "hablar.png", video: "hablar.mp4"},
     "saltar": {texto: "Saltos en colchoneta", img: "saltar.png", video: "saltar.mp4"},
-    "dibujar": {texto: "Dibujar con colores", img: "dibujar.png", video: "dibujar.mp4"},
-    "escribir": {texto: "Practicar escritura", img: "escribir.png", video: "escribir.mp4"},
-    "resolver problemas matematicos": {texto: "Ejercicios de matemáticas simples", img: "matematicas.png", video: "matematicas.mp4"},
-    "desarrollar habilidades sociales": {texto: "Juegos grupales y comunicación", img: "social.png", video: "social.mp4"},
-    "tomar decisiones": {texto: "Actividades de elección y consecuencias", img: "decidir.png", video: "decidir.mp4"},
-    "planificar el futuro": {texto: "Pequeños proyectos y metas", img: "plan.png", video: "plan.mp4"},
-    "decir palabras sencillas": {texto: "Repetir palabras y canciones", img: "palabras.png", video: "palabras.mp4"},
-    "girar la cabeza": {texto: "Ejercicios de seguimiento visual", img: "cabeza.png", video: "cabeza.mp4"},
-    "sonreir": {texto: "Juegos de expresión facial", img: "sonreir.png", video: "sonreir.mp4"},
-    "llorar": {texto: "Reconocer emociones", img: "llorar.png", video: "llorar.mp4"}
+    "dibujar": {texto: "Dibujar con colores", img: "dibujar.png", video: "dibujar.mp4"}
 };
 
-let habilidadesActuales = [];
-
-// MOSTRAR HABILIDADES
 function evaluar(){
     let edad = document.getElementById("edad").value;
     let contenedor = document.getElementById("habilidades");
     contenedor.innerHTML = "";
-    habilidadesActuales = obtenerHabilidades(edad);
 
-    habilidadesActuales.forEach(h => {
+    let habilidades = obtenerHabilidades(edad);
+
+    habilidades.forEach(h => {
         contenedor.innerHTML += `
             <div>
                 <input type="checkbox" value="${h}"> ${h}
@@ -201,21 +180,24 @@ function evaluar(){
     });
 }
 
-// RECOMENDACIONES
 function recomendar(){
-    let seleccionados = document.querySelectorAll("input[type=checkbox]:checked");
+    let seleccionados = document.querySelectorAll("input:checked");
     let resultados = document.getElementById("resultados");
     resultados.innerHTML = "";
 
     seleccionados.forEach(el => {
         let h = el.value;
-        let info = ejercicios[h] || {texto: "Actividad sugerida: " + h, img: "default.png", video: "default.mp4"};
+        let info = ejercicios[h] || {
+            texto: "Actividad sugerida: " + h,
+            img: "default.png",
+            video: "default.mp4"
+        };
 
         resultados.innerHTML += `
             <div class="card">
                 <h3>${h}</h3>
                 <p>${info.texto}</p>
-                <img src="${info.img}" alt="${h}">
+                <img src="${info.img}">
                 <video controls>
                     <source src="${info.video}" type="video/mp4">
                 </video>
