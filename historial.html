@@ -22,7 +22,6 @@ header {
     position: relative;
 }
 
-/* BOTÓN VOLVER */
 .volver {
     position: absolute;
     left: 20px;
@@ -41,7 +40,6 @@ header {
     text-align: center;
 }
 
-/* INPUTS */
 input {
     padding: 10px;
     margin: 5px;
@@ -49,7 +47,6 @@ input {
     border: 1px solid #ccc;
 }
 
-/* BOTÓN */
 button {
     padding: 10px 15px;
     background: #0288d1;
@@ -57,20 +54,24 @@ button {
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    margin: 5px;
 }
 
-/* CARD PACIENTE */
 .card {
     background: white;
     margin: 15px auto;
     padding: 15px;
     border-radius: 10px;
-    width: 300px;
+    width: 320px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    text-align: left;
 }
 
-.card h3 {
-    margin: 0;
+.historial {
+    background: #e3f2fd;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
 }
 </style>
 </head>
@@ -88,62 +89,85 @@ button {
     <input type="text" id="nombre" placeholder="Nombre">
     <input type="number" id="edad" placeholder="Edad">
     <br>
-    <button onclick="guardarPaciente()">Guardar</button>
+    <button onclick="guardarPaciente()">Guardar paciente</button>
 
-    <h2>Pacientes registrados</h2>
+    <h2>Pacientes</h2>
     <div id="lista"></div>
 
 </div>
 
 <script>
 
-// CARGAR DATOS
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
 
-// GUARDAR PACIENTE
+// CREAR PACIENTE
 function guardarPaciente(){
     let nombre = document.getElementById("nombre").value;
     let edad = document.getElementById("edad").value;
 
     if(!nombre || !edad){
-        alert("Completa todos los campos");
+        alert("Completa todo");
         return;
     }
 
-    let paciente = {
+    pacientes.push({
         nombre,
         edad,
-        fecha: new Date().toLocaleDateString()
-    };
+        historial: []
+    });
 
-    pacientes.push(paciente);
     localStorage.setItem("pacientes", JSON.stringify(pacientes));
-
     mostrarPacientes();
 }
 
-// MOSTRAR PACIENTES
+// AGREGAR REGISTRO (SEGUIMIENTO)
+function agregarRegistro(index){
+    let puede = prompt("¿Qué cosas puede hacer? (separa con coma)");
+    let noPuede = prompt("¿Qué cosas NO puede hacer?");
+
+    if(!puede && !noPuede) return;
+
+    let registro = {
+        fecha: new Date().toLocaleDateString(),
+        puede: puede ? puede.split(",") : [],
+        noPuede: noPuede ? noPuede.split(",") : []
+    };
+
+    pacientes[index].historial.push(registro);
+
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+    mostrarPacientes();
+}
+
+// MOSTRAR
 function mostrarPacientes(){
     let lista = document.getElementById("lista");
     lista.innerHTML = "";
 
     pacientes.forEach((p, i) => {
+        let historialHTML = "";
+
+        p.historial.forEach(h => {
+            historialHTML += `
+                <div class="historial">
+                    <b>Fecha:</b> ${h.fecha}<br>
+                    ✅ Puede: ${h.puede.join(", ")}<br>
+                    ❌ No puede: ${h.noPuede.join(", ")}
+                </div>
+            `;
+        });
+
         lista.innerHTML += `
             <div class="card">
                 <h3>${p.nombre}</h3>
                 <p>Edad: ${p.edad}</p>
-                <p>Registro: ${p.fecha}</p>
-                <button onclick="eliminar(${i})">Eliminar</button>
+
+                <button onclick="agregarRegistro(${i})">➕ Nuevo registro</button>
+
+                ${historialHTML}
             </div>
         `;
     });
-}
-
-// ELIMINAR
-function eliminar(i){
-    pacientes.splice(i, 1);
-    localStorage.setItem("pacientes", JSON.stringify(pacientes));
-    mostrarPacientes();
 }
 
 // VOLVER
@@ -151,7 +175,6 @@ function volver(){
     window.location.href = "index.html";
 }
 
-// CARGAR AL INICIO
 mostrarPacientes();
 
 </script>
