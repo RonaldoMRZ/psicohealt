@@ -1,1 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial de Pacientes</title>
 
+<style>
+body {
+    font-family: Arial;
+    background: #f0f4f8;
+    margin: 0;
+}
+
+/* HEADER */
+header {
+    background: #0288d1;
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+    position: relative;
+}
+
+/* BOTÓN VOLVER */
+.volver {
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    background: white;
+    color: #0288d1;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* CONTENEDOR */
+.container {
+    padding: 20px;
+    text-align: center;
+}
+
+/* INPUTS */
+input {
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+/* BOTÓN */
+button {
+    padding: 10px 15px;
+    background: #0288d1;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* CARD PACIENTE */
+.card {
+    background: white;
+    margin: 15px auto;
+    padding: 15px;
+    border-radius: 10px;
+    width: 300px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.card h3 {
+    margin: 0;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <button class="volver" onclick="volver()">⬅</button>
+    Historial de Pacientes
+</header>
+
+<div class="container">
+
+    <h2>Agregar paciente</h2>
+    <input type="text" id="nombre" placeholder="Nombre">
+    <input type="number" id="edad" placeholder="Edad">
+    <br>
+    <button onclick="guardarPaciente()">Guardar</button>
+
+    <h2>Pacientes registrados</h2>
+    <div id="lista"></div>
+
+</div>
+
+<script>
+
+// CARGAR DATOS
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+
+// GUARDAR PACIENTE
+function guardarPaciente(){
+    let nombre = document.getElementById("nombre").value;
+    let edad = document.getElementById("edad").value;
+
+    if(!nombre || !edad){
+        alert("Completa todos los campos");
+        return;
+    }
+
+    let paciente = {
+        nombre,
+        edad,
+        fecha: new Date().toLocaleDateString()
+    };
+
+    pacientes.push(paciente);
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+
+    mostrarPacientes();
+}
+
+// MOSTRAR PACIENTES
+function mostrarPacientes(){
+    let lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    pacientes.forEach((p, i) => {
+        lista.innerHTML += `
+            <div class="card">
+                <h3>${p.nombre}</h3>
+                <p>Edad: ${p.edad}</p>
+                <p>Registro: ${p.fecha}</p>
+                <button onclick="eliminar(${i})">Eliminar</button>
+            </div>
+        `;
+    });
+}
+
+// ELIMINAR
+function eliminar(i){
+    pacientes.splice(i, 1);
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+    mostrarPacientes();
+}
+
+// VOLVER
+function volver(){
+    window.location.href = "index.html";
+}
+
+// CARGAR AL INICIO
+mostrarPacientes();
+
+</script>
+
+</body>
+</html>
