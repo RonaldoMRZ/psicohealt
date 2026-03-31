@@ -134,7 +134,10 @@ function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
 function guardarDatos(){
     const user = auth.currentUser;
     if(!user) return;
-    db.collection("usuarios").doc(user.uid).set({ pacientes: pacientes });
+    // Usamos merge:true para no sobreescribir por completo
+    db.collection("usuarios").doc(user.uid).set({ pacientes: pacientes }, { merge:true })
+        .then(()=>console.log("Datos guardados"))
+        .catch(e=>alert("Error guardando datos: "+e.message));
 }
 
 // 📥 Cargar datos
@@ -144,8 +147,10 @@ function cargarDatos(){
     db.collection("usuarios").doc(user.uid).get()
     .then(doc=>{
         if(doc.exists){ pacientes = doc.data().pacientes || []; }
+        else { pacientes = []; }
         mostrarPacientes();
-    });
+    })
+    .catch(e=>alert("Error cargando datos: "+e.message));
 }
 
 // ➕ Crear paciente
