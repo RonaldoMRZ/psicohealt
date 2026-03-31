@@ -31,20 +31,18 @@
 
 <style>
 body {font-family: Arial; background:#f0f4f8; margin:0;}
-header {background:#0288d1;color:white;padding:20px;text-align:center; font-size:24px;}
+header {background:#0288d1;color:white;padding:15px; display:flex; justify-content:space-between; align-items:center;}
+header h1 {margin:0; font-size:22px;}
+button {padding:8px 15px; border:none; border-radius:6px; cursor:pointer; font-size:14px; transition:0.3s;}
+button:hover {opacity:0.85;}
+.btn-inicio {background:#0277bd; color:white;}
+.btn-logout {background:#d32f2f; color:white;}
 .container {padding:20px;text-align:center;}
 input, textarea {
     padding:10px; margin:5px; width:90%; max-width:300px;
     border-radius:8px; border:1px solid #ccc; font-size:14px;
 }
 textarea {height:60px; resize:none;}
-button {
-    padding:10px 20px; background:#0288d1;
-    color:white; border:none; border-radius:8px;
-    cursor:pointer; margin:5px; font-size:14px;
-    transition: 0.3s;
-}
-button:hover {background:#0277bd;}
 .card {background:white; margin:15px auto; padding:15px; border-radius:10px; width:90%; max-width:350px; text-align:left;}
 .historial {background:#ffe0e0;padding:10px;margin-top:10px; border-radius:6px;}
 .btn-eliminar {background:red; color:white; margin-top:5px; padding:5px 10px; font-size:12px;}
@@ -55,7 +53,11 @@ label {display:block; margin-top:10px; font-weight:600;}
 
 <body>
 
-<header>🏥 Sistema de Pacientes</header>
+<header>
+  <button class="btn-inicio" onclick="irInicio()">🏠 Inicio</button>
+  <h1>Sistema de Pacientes</h1>
+  <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+</header>
 
 <div class="container">
 
@@ -81,7 +83,6 @@ label {display:block; margin-top:10px; font-weight:600;}
 <div id="formulario"></div>
 <div id="lista"></div>
 
-<button onclick="logout()">Cerrar sesión</button>
 </div>
 
 </div>
@@ -113,6 +114,9 @@ function login(){
 // 🔒 Logout
 function logout(){ auth.signOut(); }
 
+// 🏠 Ir a página principal
+function irInicio(){ window.location.href="index.html"; } // Cambia a tu página principal
+
 // 🔄 Manejar sesión
 auth.onAuthStateChanged(user=>{
     const loginDiv = document.getElementById("login");
@@ -134,7 +138,6 @@ function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
 function guardarDatos(){
     const user = auth.currentUser;
     if(!user) return;
-    // Usamos merge:true para no sobreescribir por completo
     db.collection("usuarios").doc(user.uid).set({ pacientes: pacientes }, { merge:true })
         .then(()=>console.log("Datos guardados"))
         .catch(e=>alert("Error guardando datos: "+e.message));
