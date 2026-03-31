@@ -3,206 +3,252 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evaluación del Paciente</title>
+<title>Sistema Clínico</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- FIREBASE SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+  // 🔥 Configuración de Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyBNmNtKELNgO40l4wJKq6iNjwlEDPLQ1D8",
+    authDomain: "psicohealt-3cbbd.firebaseapp.com",
+    projectId: "psicohealt-3cbbd",
+    storageBucket: "psicohealt-3cbbd.firebasestorage.app",
+    messagingSenderId: "199080682822",
+    appId: "1:199080682822:web:6e4443e3cc16ccceb5f147",
+    measurementId: "G-EFDSDFET5F"
+  };
+
+  // Inicializar Firebase
+  firebase.initializeApp(firebaseConfig);
+  const analytics = firebase.analytics();
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+</script>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+body {font-family: Arial; background:#f0f4f8; margin:0;}
+header {background:#0288d1;color:white;padding:20px;text-align:center; font-size:24px;}
+.container {padding:20px;text-align:center;}
+input, textarea {
+    padding:10px; margin:5px; width:250px;
+    border-radius:8px; border:1px solid #ccc;
 }
-body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #e0f7fa, #fff3e0);
-    color: #333;
-}
-
-/* HEADER */
-header {
-    background: #0288d1;
-    color: white;
-    text-align: center;
-    padding: 25px 0;
-    font-size: 28px;
-    font-weight: 700;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    letter-spacing: 1px;
-    position: relative; /* IMPORTANTE */
-}
-
-/* BOTÓN HISTORIAL */
-.btn-historial {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: white;
-    color: #0288d1;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.btn-historial:hover {
-    background: #e1f5fe;
-    transform: scale(1.05);
-}
-
-/* CONTAINER */
-.container {
-    max-width: 800px;
-    margin: 30px auto;
-    padding: 20px;
-}
-
-/* INPUT Y BOTONES */
-input[type="number"] {
-    padding: 12px;
-    width: 120px;
-    font-size: 16px;
-    border: 2px solid #0288d1;
-    border-radius: 8px;
-    margin-right: 10px;
-}
-
 button {
-    background: #0288d1;
-    color: white;
-    border: none;
-    padding: 12px 20px;
-    border-radius: 8px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: 0.3s;
+    padding:10px 15px; background:#0288d1;
+    color:white; border:none; border-radius:8px;
+    cursor:pointer; margin:5px;
 }
-button:hover {
-    background: #00acc1;
-    transform: translateY(-2px);
-}
-
-/* HABILIDADES */
-.habilidades-list {
-    margin-top: 20px;
-}
-
-/* CARD */
 .card {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    margin: 15px 0;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    text-align: center;
-    animation: fadeIn 0.5s ease;
+    background:white; margin:15px auto; padding:15px;
+    border-radius:10px; width:320px; text-align:left;
 }
-
-.card img {
-    width: 150px;
-    border-radius: 10px;
-    margin: 10px 0;
-}
-
-.card video {
-    width: 100%;
-    max-width: 400px;
-    border-radius: 10px;
-}
-
-/* ANIMACIÓN */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px);}
-    to { opacity: 1; transform: translateY(0);}
-}
+.historial {background:#ffe0e0;padding:10px;margin-top:10px;}
+.btn-eliminar {background:red; color:white;}
 </style>
 </head>
 
 <body>
 
-<header>
-    Evaluación del Paciente
-    <button class="btn-historial" onclick="window.location.href='historial.html'">
-        📋 Historial
-    </button>
-</header>
+<header>🏥 Sistema de Pacientes</header>
 
 <div class="container">
-    <input type="number" id="edad" placeholder="Edad">
-    <button onclick="evaluar()">Evaluar</button>
 
-    <h2>¿Qué habilidades carece el paciente?</h2>
-    <div class="habilidades-list" id="habilidades"></div>
-    
-    <button onclick="recomendar()">Recomendar ejercicios</button>
+<!-- LOGIN -->
+<div id="login">
+<h2>Login</h2>
+<input id="email" placeholder="Correo"><br>
+<input id="password" type="password" placeholder="Contraseña"><br>
+<button onclick="login()">Entrar</button>
+<button onclick="register()">Registrarse</button>
+</div>
 
-    <div id="resultados"></div>
+<!-- APP -->
+<div id="app" style="display:none;">
+
+<h2>Agregar paciente</h2>
+<input id="nombre" placeholder="Nombre">
+<input id="edad" type="number" placeholder="Edad"><br>
+<button onclick="crearPaciente()">Guardar</button>
+
+<h2>Buscar paciente</h2>
+<input id="busqueda" placeholder="Buscar por nombre o ID" onkeyup="buscarPaciente()">
+
+<div id="formulario"></div>
+<div id="lista"></div>
+
+<button onclick="logout()">Cerrar sesión</button>
+
+</div>
+
 </div>
 
 <script>
-// HABILIDADES
-function obtenerHabilidades(edad){
-    if(edad >= 12){
-        return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];
-    } else if(edad >= 10){
-        return ["escribir","resolver problemas matematicos"];
-    } else if(edad >= 5){
-        return ["saltar","dibujar","hablar"];
-    } else if(edad >= 2){
-        return ["caminar","decir palabras sencillas"];
-    } else {
-        return ["girar la cabeza","sonreir","llorar"];
+let pacientes = [];
+let pacienteIndex = null;
+
+// 🔐 Registro
+function register(){
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){
+        alert("Ingresa correo y contraseña");
+        return;
     }
+    auth.createUserWithEmailAndPassword(emailVal, passwordVal)
+        .then(()=>alert("Usuario creado correctamente"))
+        .catch(e=>alert("Error: "+e.message));
 }
 
-// EJERCICIOS
-const ejercicios = {
-    "caminar": {texto: "Caminar con apoyo", img: "caminar.png", video: "caminar.mp4"},
-    "hablar": {texto: "Practicar palabras", img: "hablar.png", video: "hablar.mp4"},
-    "saltar": {texto: "Saltos en colchoneta", img: "saltar.png", video: "saltar.mp4"},
-    "dibujar": {texto: "Dibujar con colores", img: "dibujar.png", video: "dibujar.mp4"}
-};
+// 🔐 Login
+function login(){
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){
+        alert("Ingresa correo y contraseña");
+        return;
+    }
+    auth.signInWithEmailAndPassword(emailVal, passwordVal)
+        .catch(e=>alert("Error: "+e.message));
+}
 
-function evaluar(){
-    let edad = document.getElementById("edad").value;
-    let contenedor = document.getElementById("habilidades");
-    contenedor.innerHTML = "";
+// 🔒 Logout
+function logout(){
+    auth.signOut();
+}
 
-    let habilidades = obtenerHabilidades(edad);
+// 🔄 Manejar sesión
+auth.onAuthStateChanged(user=>{
+    if(user){
+        document.getElementById("login").style.display="none";
+        document.getElementById("app").style.display="block";
+        cargarDatos();
+    } else {
+        document.getElementById("login").style.display="block";
+        document.getElementById("app").style.display="none";
+    }
+});
 
-    habilidades.forEach(h => {
-        contenedor.innerHTML += `
-            <div>
-                <input type="checkbox" value="${h}"> ${h}
-            </div>
-        `;
+// 🆔 Generar ID
+function generarID(){
+    return "PAC-"+Math.floor(Math.random()*1000000);
+}
+
+// 💾 Guardar datos en Firestore
+function guardarDatos(){
+    const user = auth.currentUser;
+    if(!user) return;
+    db.collection("usuarios").doc(user.uid).set({ pacientes: pacientes });
+}
+
+// 📥 Cargar datos
+function cargarDatos(){
+    const user = auth.currentUser;
+    if(!user) return;
+    db.collection("usuarios").doc(user.uid).get()
+    .then(doc=>{
+        if(doc.exists){
+            pacientes = doc.data().pacientes || [];
+        } else {
+            pacientes = [];
+        }
+        mostrarPacientes();
     });
 }
 
-function recomendar(){
-    let seleccionados = document.querySelectorAll("input:checked");
-    let resultados = document.getElementById("resultados");
-    resultados.innerHTML = "";
+// ➕ Crear paciente
+function crearPaciente(){
+    const nombreVal = document.getElementById("nombre").value;
+    const edadVal = document.getElementById("edad").value;
+    if(!nombreVal || !edadVal) return;
+    pacientes.push({
+        id: generarID(),
+        nombre: nombreVal,
+        edad: edadVal,
+        historial:[]
+    });
+    document.getElementById("nombre").value="";
+    document.getElementById("edad").value="";
+    guardarDatos();
+    mostrarPacientes();
+}
 
-    seleccionados.forEach(el => {
-        let h = el.value;
-        let info = ejercicios[h] || {
-            texto: "Actividad sugerida: " + h,
-            img: "default.png",
-            video: "default.mp4"
-        };
+// 📝 Nuevo registro
+function nuevoRegistro(i){
+    pacienteIndex = i;
+    document.getElementById("formulario").innerHTML = `
+        <input id="noPuede" placeholder="No puede hacer">
+        <textarea id="obs" placeholder="Observaciones"></textarea><br>
+        <button onclick="guardarRegistro()">Guardar</button>
+    `;
+}
 
-        resultados.innerHTML += `
+// 💾 Guardar registro
+function guardarRegistro(){
+    const noPuedeVal = document.getElementById("noPuede").value;
+    const obsVal = document.getElementById("obs").value;
+    if(!noPuedeVal && !obsVal) return;
+    pacientes[pacienteIndex].historial.push({
+        fecha: new Date().toLocaleDateString(),
+        noPuede: noPuedeVal,
+        obs: obsVal
+    });
+    guardarDatos();
+    document.getElementById("formulario").innerHTML="";
+    mostrarPacientes();
+}
+
+// 🗑️ Eliminar paciente o registro
+function eliminarPaciente(i){
+    if(!confirm("¿Eliminar paciente?")) return;
+    pacientes.splice(i,1);
+    guardarDatos();
+    mostrarPacientes();
+}
+function eliminarRegistro(p,r){
+    if(!confirm("¿Eliminar registro?")) return;
+    pacientes[p].historial.splice(r,1);
+    guardarDatos();
+    mostrarPacientes();
+}
+
+// 🔍 Buscar paciente
+function buscarPaciente(){
+    const filtro = document.getElementById("busqueda").value.toLowerCase();
+    mostrarPacientes(filtro);
+}
+
+// 📋 Mostrar pacientes
+function mostrarPacientes(filtro=""){
+    const lista = document.getElementById("lista");
+    lista.innerHTML="";
+    pacientes.forEach((p,i)=>{
+        if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
+            let historialHTML="";
+            p.historial.forEach((h,j)=>{
+                historialHTML+=`
+                <div class="historial">
+                    <b>${h.fecha}</b><br>
+                    ❌ ${h.noPuede}<br>
+                    📝 ${h.obs}<br>
+                    <button class="btn-eliminar" onclick="eliminarRegistro(${i},${j})">Eliminar</button>
+                </div>`;
+            });
+
+            lista.innerHTML+=`
             <div class="card">
-                <h3>${h}</h3>
-                <p>${info.texto}</p>
-                <img src="${info.img}">
-                <video controls>
-                    <source src="${info.video}" type="video/mp4">
-                </video>
-            </div>
-        `;
+                <h3>${p.nombre}</h3>
+                ID: ${p.id}<br>
+                Edad: ${p.edad}<br>
+                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
+                <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️</button>
+                ${historialHTML}
+            </div>`;
+        }
     });
 }
 </script>
