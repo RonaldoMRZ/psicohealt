@@ -34,21 +34,11 @@
 body {font-family: Arial; background:#f0f4f8; margin:0;}
 header {background:#0288d1;color:white;padding:20px;text-align:center; font-size:24px;}
 .container {padding:20px;text-align:center;}
-input, textarea {
-    padding:10px; margin:5px; width:250px;
-    border-radius:8px; border:1px solid #ccc;
-}
-button {
-    padding:10px 15px; background:#0288d1;
-    color:white; border:none; border-radius:8px;
-    cursor:pointer; margin:5px;
-}
-.card {
-    background:white; margin:15px auto; padding:15px;
-    border-radius:10px; width:320px; text-align:left;
-}
+input, textarea {padding:10px; margin:5px; width:250px; border-radius:8px; border:1px solid #ccc;}
+button {padding:10px 15px; background:#0288d1; color:white; border:none; border-radius:8px; cursor:pointer; margin:5px;}
+.card {background:white; margin:15px auto; padding:15px; border-radius:10px; width:320px; text-align:left;}
 .historial {background:#ffe0e0;padding:10px;margin-top:10px;}
-.btn-eliminar {background:red; color:white;}
+.btn-eliminar {background:red; color:white; margin-top:5px;}
 </style>
 </head>
 
@@ -69,7 +59,6 @@ button {
 
 <!-- APP -->
 <div id="app" style="display:none;">
-
 <h2>Agregar paciente</h2>
 <input id="nombre" placeholder="Nombre">
 <input id="edad" type="number" placeholder="Edad"><br>
@@ -82,7 +71,6 @@ button {
 <div id="lista"></div>
 
 <button onclick="logout()">Cerrar sesión</button>
-
 </div>
 
 </div>
@@ -93,81 +81,76 @@ let pacienteIndex = null;
 
 // 🔐 Registro
 function register(){
-    auth.createUserWithEmailAndPassword(
-        email.value, password.value
-    ).then(()=>alert("Usuario creado"))
-    .catch(e=>alert(e.message));
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
+    auth.createUserWithEmailAndPassword(emailVal, passwordVal)
+        .then(()=>{ alert("Usuario creado correctamente"); document.getElementById("email").value=""; document.getElementById("password").value=""; })
+        .catch(e=>alert("Error: "+e.message));
 }
 
 // 🔐 Login
 function login(){
-    auth.signInWithEmailAndPassword(
-        email.value, password.value
-    ).catch(e=>alert(e.message));
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
+    auth.signInWithEmailAndPassword(emailVal, passwordVal)
+        .then(()=>{ alert("Login exitoso. Cargando datos..."); document.getElementById("email").value=""; document.getElementById("password").value=""; })
+        .catch(e=>alert("Error: "+e.message));
 }
 
 // 🔒 Logout
-function logout(){
-    auth.signOut();
-}
+function logout(){ auth.signOut(); }
 
 // 🔄 Manejar sesión
 auth.onAuthStateChanged(user=>{
+    const loginDiv = document.getElementById("login");
+    const appDiv = document.getElementById("app");
     if(user){
-        login.style.display="none";
-        app.style.display="block";
+        loginDiv.style.display="none";
+        appDiv.style.display="block";
         cargarDatos();
     } else {
-        login.style.display="block";
-        app.style.display="none";
+        loginDiv.style.display="block";
+        appDiv.style.display="none";
     }
 });
 
 // 🆔 Generar ID
-function generarID(){
-    return "PAC-"+Math.floor(Math.random()*1000000);
-}
+function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
 
 // 💾 Guardar datos en Firestore
 function guardarDatos(){
-    let user = auth.currentUser;
+    const user = auth.currentUser;
     if(!user) return;
-    db.collection("usuarios").doc(user.uid).set({
-        pacientes: pacientes
-    });
+    db.collection("usuarios").doc(user.uid).set({ pacientes: pacientes });
 }
 
 // 📥 Cargar datos
 function cargarDatos(){
-    let user = auth.currentUser;
+    const user = auth.currentUser;
     if(!user) return;
     db.collection("usuarios").doc(user.uid).get()
     .then(doc=>{
-        if(doc.exists){
-            pacientes = doc.data().pacientes || [];
-        }
+        if(doc.exists){ pacientes = doc.data().pacientes || []; }
         mostrarPacientes();
     });
 }
 
 // ➕ Crear paciente
 function crearPaciente(){
-    if(!nombre.value || !edad.value) return;
-    pacientes.push({
-        id: generarID(),
-        nombre: nombre.value,
-        edad: edad.value,
-        historial:[]
-    });
-    nombre.value=""; edad.value="";
-    guardarDatos();
-    mostrarPacientes();
+    const nombreVal = document.getElementById("nombre").value;
+    const edadVal = document.getElementById("edad").value;
+    if(!nombreVal || !edadVal) return;
+    pacientes.push({ id: generarID(), nombre: nombreVal, edad: edadVal, historial: [] });
+    document.getElementById("nombre").value=""; document.getElementById("edad").value="";
+    guardarDatos(); mostrarPacientes();
 }
 
 // 📝 Nuevo registro
 function nuevoRegistro(i){
     pacienteIndex = i;
-    formulario.innerHTML = `
+    document.getElementById("formulario").innerHTML = `
         <input id="noPuede" placeholder="No puede hacer">
         <textarea id="obs" placeholder="Observaciones"></textarea><br>
         <button onclick="guardarRegistro()">Guardar</button>
@@ -182,33 +165,23 @@ function guardarRegistro(){
         noPuede: noPuede.value,
         obs: obs.value
     });
-    guardarDatos();
-    formulario.innerHTML="";
-    mostrarPacientes();
+    document.getElementById("formulario").innerHTML="";
+    guardarDatos(); mostrarPacientes();
 }
 
 // 🗑️ Eliminar paciente o registro
-function eliminarPaciente(i){
-    if(!confirm("¿Eliminar paciente?")) return;
-    pacientes.splice(i,1);
-    guardarDatos();
-    mostrarPacientes();
-}
-function eliminarRegistro(p,r){
-    if(!confirm("¿Eliminar registro?")) return;
-    pacientes[p].historial.splice(r,1);
-    guardarDatos();
-    mostrarPacientes();
-}
+function eliminarPaciente(i){ if(!confirm("¿Eliminar paciente?")) return; pacientes.splice(i,1); guardarDatos(); mostrarPacientes(); }
+function eliminarRegistro(p,r){ if(!confirm("¿Eliminar registro?")) return; pacientes[p].historial.splice(r,1); guardarDatos(); mostrarPacientes(); }
 
 // 🔍 Buscar paciente
 function buscarPaciente(){
-    let t = busqueda.value.toLowerCase();
+    const t = document.getElementById("busqueda").value.toLowerCase();
     mostrarPacientes(t);
 }
 
 // 📋 Mostrar pacientes
 function mostrarPacientes(filtro=""){
+    const lista = document.getElementById("lista");
     lista.innerHTML="";
     pacientes.forEach((p,i)=>{
         if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
