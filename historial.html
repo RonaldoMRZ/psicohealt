@@ -1,203 +1,160 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Historial de Pacientes</title>
-
-<style>
-body {
-    font-family: Arial;
-    background: #f0f4f8;
-    margin: 0;
-}
-
-/* HEADER */
-header {
-    background: #0288d1;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    font-size: 24px;
-    position: relative;
-}
-
-.volver {
-    position: absolute;
-    left: 20px;
-    top: 20px;
-    background: white;
-    color: #0288d1;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-
-/* CONTENEDOR */
-.container {
-    padding: 20px;
-    text-align: center;
-}
-
-input {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-}
-
-button {
-    padding: 10px 15px;
-    background: #0288d1;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    margin: 5px;
-}
-
-.card {
-    background: white;
-    margin: 15px auto;
-    padding: 15px;
-    border-radius: 10px;
-    width: 320px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    text-align: left;
-}
-
-.historial {
-    background: #e3f2fd;
-    margin-top: 10px;
-    padding: 10px;
-    border-radius: 8px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Pacientes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        .btn-delete {
+            background-color: #e74c3c;
+            padding: 5px 10px;
+        }
+        .btn-delete:hover {
+            background-color: #c0392b;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #ecf0f1;
+        }
+    </style>
 </head>
-
 <body>
 
-<header>
-    <button class="volver" onclick="volver()">⬅</button>
-    Historial de Pacientes
-</header>
-
 <div class="container">
+    <h2>🏥 Sistema de Registro de Pacientes</h2>
+    
+    <div class="form-group">
+        <input type="text" id="nombrePaciente" placeholder="Nombre completo del paciente">
+        <input type="text" id="motivoConsulta" placeholder="Motivo de la consulta">
+        <button onclick="agregarPaciente()">Agregar</button>
+    </div>
 
-    <h2>Agregar paciente</h2>
-    <input type="text" id="nombre" placeholder="Nombre">
-    <input type="number" id="edad" placeholder="Edad">
-    <br>
-    <button onclick="guardarPaciente()">Guardar paciente</button>
-
-    <h2>Pacientes</h2>
-    <div id="lista"></div>
-
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Motivo</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody id="tablaPacientes">
+            </tbody>
+    </table>
 </div>
 
 <script>
+    // Arreglo para guardar los registros
+    let pacientes = [
+        { id: 1, nombre: "Juan Pérez", motivo: "Dolor de cabeza" },
+        { id: 2, nombre: "María López", motivo: "Chequeo general" }
+    ];
 
-let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
-let pacienteActivo = null;
+    // Función para mostrar los pacientes en la tabla
+    function renderizarTabla() {
+        const tbody = document.getElementById("tablaPacientes");
+        tbody.innerHTML = ""; // Limpiar tabla antes de actualizar
 
-// CREAR PACIENTE
-function guardarPaciente(){
-    let nombre = document.getElementById("nombre").value;
-    let edad = document.getElementById("edad").value;
-
-    if(!nombre || !edad){
-        alert("Completa todo");
-        return;
+        pacientes.forEach((paciente, index) => {
+            const fila = document.createElement("tr");
+            
+            fila.innerHTML = `
+                <td>${paciente.id}</td>
+                <td>${paciente.nombre}</td>
+                <td>${paciente.motivo}</td>
+                <td>
+                    <button class="btn-delete" onclick="borrarPaciente(${index})">Eliminar</button>
+                </td>
+            `;
+            tbody.appendChild(fila);
+        });
     }
 
-    pacientes.push({
-        nombre,
-        edad,
-        historial: []
-    });
+    // Función para agregar un nuevo paciente
+    function agregarPaciente() {
+        const inputNombre = document.getElementById("nombrePaciente");
+        const inputMotivo = document.getElementById("motivoConsulta");
 
-    localStorage.setItem("pacientes", JSON.stringify(pacientes));
-    mostrarPacientes();
-}
+        if (inputNombre.value.trim() === "" || inputMotivo.value.trim() === "") {
+            alert("Por favor, llena todos los campos.");
+            return;
+        }
 
-// MOSTRAR FORMULARIO
-function mostrarFormulario(index){
-    pacienteActivo = index;
+        const nuevoPaciente = {
+            id: pacientes.length > 0 ? pacientes[pacientes.length - 1].id + 1 : 1,
+            nombre: inputNombre.value,
+            motivo: inputMotivo.value
+        };
 
-    let form = document.getElementById("formRegistro");
+        pacientes.push(nuevoPaciente);
+        inputNombre.value = "";
+        inputMotivo.value = "";
+        
+        renderizarTabla();
+    }
 
-    form.innerHTML = `
-        <h3>Nuevo registro para ${pacientes[index].nombre}</h3>
+    // Función para borrar con mensaje de confirmación
+    function borrarPaciente(index) {
+        // Aquí está la magia de la confirmación
+        const confirmacion = confirm(`¿Estás completamente seguro de que deseas eliminar el registro de ${pacientes[index].nombre}?`);
+        
+        if (confirmacion) {
+            pacientes.splice(index, 1); // Elimina 1 elemento en la posición "index"
+            renderizarTabla(); // Actualiza la vista
+        }
+    }
 
-        <input type="text" id="puede" placeholder="Qué puede hacer (ej: caminar, hablar)">
-        <br><br>
-        <input type="text" id="noPuede" placeholder="Qué NO puede hacer">
-        <br><br>
-
-        <button onclick="guardarRegistro()">Guardar registro</button>
-    `;
-}
-
-// GUARDAR REGISTRO
-function guardarRegistro(){
-    let puede = document.getElementById("puede").value;
-    let noPuede = document.getElementById("noPuede").value;
-
-    let registro = {
-        fecha: new Date().toLocaleDateString(),
-        puede: puede ? puede.split(",") : [],
-        noPuede: noPuede ? noPuede.split(",") : []
-    };
-
-    pacientes[pacienteActivo].historial.push(registro);
-
-    localStorage.setItem("pacientes", JSON.stringify(pacientes));
-
-    document.getElementById("formRegistro").innerHTML = "";
-    mostrarPacientes();
-}
-
-// MOSTRAR PACIENTES
-function mostrarPacientes(){
-    let lista = document.getElementById("lista");
-    lista.innerHTML = "";
-
-    pacientes.forEach((p, i) => {
-        let historialHTML = "";
-
-        p.historial.forEach(h => {
-            historialHTML += `
-                <div class="historial">
-                    <b>Fecha:</b> ${h.fecha}<br>
-                    ✅ Puede: ${h.puede.join(", ")}<br>
-                    ❌ No puede: ${h.noPuede.join(", ")}
-                </div>
-            `;
-        });
-
-        lista.innerHTML += `
-            <div class="card">
-                <h3>${p.nombre}</h3>
-                <p>Edad: ${p.edad}</p>
-
-                <button onclick="mostrarFormulario(${i})">
-                    ➕ Nuevo registro
-                </button>
-
-                ${historialHTML}
-            </div>
-        `;
-    });
-}
-
-// VOLVER
-function volver(){
-    window.location.href = "index.html";
-}
-
-mostrarPacientes();
-
+    // Mostrar los datos iniciales al cargar la página
+    renderizarTabla();
 </script>
 
 </body>
