@@ -12,7 +12,6 @@ body {
     margin: 0;
 }
 
-/* HEADER */
 header {
     background: #0288d1;
     color: white;
@@ -34,14 +33,12 @@ header {
     cursor: pointer;
 }
 
-/* CONTENEDOR */
 .container {
     padding: 20px;
     text-align: center;
 }
 
-/* INPUTS */
-input {
+input, textarea {
     padding: 10px;
     margin: 5px;
     border-radius: 8px;
@@ -49,7 +46,11 @@ input {
     width: 250px;
 }
 
-/* BOTONES */
+textarea {
+    height: 80px;
+    resize: none;
+}
+
 button {
     padding: 10px 15px;
     background: #0288d1;
@@ -65,7 +66,6 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* CARD */
 .card {
     background: white;
     margin: 15px auto;
@@ -76,15 +76,19 @@ button:hover {
     text-align: left;
 }
 
-/* HISTORIAL */
 .historial {
-    background: #e3f2fd;
+    background: #ffebee;
     margin-top: 10px;
     padding: 10px;
     border-radius: 8px;
 }
 
-/* FORMULARIO */
+.obs {
+    margin-top: 5px;
+    font-style: italic;
+    color: #444;
+}
+
 .form-box {
     background: #fff;
     margin: 20px auto;
@@ -113,10 +117,7 @@ button:hover {
 
     <h2>Pacientes</h2>
 
-    <!-- FORMULARIO DINÁMICO -->
     <div id="formRegistro"></div>
-
-    <!-- LISTA -->
     <div id="lista"></div>
 
 </div>
@@ -126,7 +127,10 @@ button:hover {
 let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
 let pacienteActivo = null;
 
-// CREAR PACIENTE
+function generarID(){
+    return "PAC-" + Date.now();
+}
+
 function guardarPaciente(){
     let nombre = document.getElementById("nombre").value;
     let edad = document.getElementById("edad").value;
@@ -137,6 +141,7 @@ function guardarPaciente(){
     }
 
     pacientes.push({
+        id: generarID(),
         nombre,
         edad,
         historial: []
@@ -146,33 +151,37 @@ function guardarPaciente(){
     mostrarPacientes();
 }
 
-// MOSTRAR FORMULARIO
 function mostrarFormulario(index){
     pacienteActivo = index;
 
     document.getElementById("formRegistro").innerHTML = `
         <div class="form-box">
-            <h3>Nuevo registro para ${pacientes[index].nombre}</h3>
+            <h3>Nuevo registro</h3>
 
-            <input type="text" id="puede" placeholder="Qué puede hacer (ej: caminar, hablar)">
+            <input type="text" id="noPuede" placeholder="¿Qué NO puede hacer?">
             <br>
-            <input type="text" id="noPuede" placeholder="Qué NO puede hacer">
-            <br><br>
+
+            <textarea id="observacion" placeholder="Escribe observaciones del paciente..."></textarea>
+            <br>
 
             <button onclick="guardarRegistro()">Guardar</button>
         </div>
     `;
 }
 
-// GUARDAR REGISTRO
 function guardarRegistro(){
-    let puede = document.getElementById("puede").value;
     let noPuede = document.getElementById("noPuede").value;
+    let observacion = document.getElementById("observacion").value;
+
+    if(!noPuede){
+        alert("Escribe al menos una dificultad");
+        return;
+    }
 
     let registro = {
         fecha: new Date().toLocaleDateString(),
-        puede: puede ? puede.split(",") : [],
-        noPuede: noPuede ? noPuede.split(",") : []
+        noPuede: noPuede.split(","),
+        observacion: observacion
     };
 
     pacientes[pacienteActivo].historial.push(registro);
@@ -183,7 +192,6 @@ function guardarRegistro(){
     mostrarPacientes();
 }
 
-// MOSTRAR PACIENTES
 function mostrarPacientes(){
     let lista = document.getElementById("lista");
     lista.innerHTML = "";
@@ -195,8 +203,8 @@ function mostrarPacientes(){
             historialHTML += `
                 <div class="historial">
                     <b>📅 ${h.fecha}</b><br>
-                    ✅ Puede: ${h.puede.join(", ")}<br>
-                    ❌ No puede: ${h.noPuede.join(", ")}
+                    ❌ No puede: ${h.noPuede.join(", ")}<br>
+                    <div class="obs">📝 ${h.observacion}</div>
                 </div>
             `;
         });
@@ -204,6 +212,7 @@ function mostrarPacientes(){
         lista.innerHTML += `
             <div class="card">
                 <h3>${p.nombre}</h3>
+                <p><b>ID:</b> ${p.id}</p>
                 <p>Edad: ${p.edad}</p>
 
                 <button onclick="mostrarFormulario(${i})">
@@ -216,12 +225,10 @@ function mostrarPacientes(){
     });
 }
 
-// VOLVER
 function volver(){
     window.location.href = "index.html";
 }
 
-// INICIAR
 mostrarPacientes();
 
 </script>
