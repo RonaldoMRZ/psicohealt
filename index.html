@@ -3,255 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema Clínico</title>
-
-<!-- FIREBASE SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-<script>
-  // 🔥 Configuración de Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyBNmNtKELNgO40l4wJKq6iNjwlEDPLQ1D8",
-    authDomain: "psicohealt-3cbbd.firebaseapp.com",
-    projectId: "psicohealt-3cbbd",
-    storageBucket: "psicohealt-3cbbd.firebasestorage.app",
-    messagingSenderId: "199080682822",
-    appId: "1:199080682822:web:6e4443e3cc16ccceb5f147",
-    measurementId: "G-EFDSDFET5F"
-  };
-
-  // Inicializar Firebase
-  firebase.initializeApp(firebaseConfig);
-  const analytics = firebase.analytics();
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-</script>
-
+<title>Página Principal</title>
 <style>
-body {font-family: Arial; background:#f0f4f8; margin:0;}
-header {background:#0288d1;color:white;padding:20px;text-align:center; font-size:24px;}
-.container {padding:20px;text-align:center;}
-input, textarea {
-    padding:10px; margin:5px; width:250px;
-    border-radius:8px; border:1px solid #ccc;
-}
+body {font-family: Arial; text-align:center; padding:50px; background:#f0f4f8;}
 button {
-    padding:10px 15px; background:#0288d1;
-    color:white; border:none; border-radius:8px;
-    cursor:pointer; margin:5px;
+    padding:15px 25px;
+    margin:20px;
+    font-size:18px;
+    border-radius:8px;
+    cursor:pointer;
+    background:#0288d1;
+    color:white;
+    border:none;
+    transition:0.3s;
 }
-.card {
-    background:white; margin:15px auto; padding:15px;
-    border-radius:10px; width:320px; text-align:left;
-}
-.historial {background:#ffe0e0;padding:10px;margin-top:10px;}
-.btn-eliminar {background:red; color:white;}
+button:hover {background:#0277bd; transform: translateY(-2px);}
+h1 {color:#0288d1;}
 </style>
 </head>
-
 <body>
-
-<header>🏥 Sistema de Pacientes</header>
-
-<div class="container">
-
-<!-- LOGIN -->
-<div id="login">
-<h2>Login</h2>
-<input id="email" placeholder="Correo"><br>
-<input id="password" type="password" placeholder="Contraseña"><br>
-<button onclick="login()">Entrar</button>
-<button onclick="register()">Registrarse</button>
-</div>
-
-<!-- APP -->
-<div id="app" style="display:none;">
-
-<h2>Agregar paciente</h2>
-<input id="nombre" placeholder="Nombre">
-<input id="edad" type="number" placeholder="Edad"><br>
-<button onclick="crearPaciente()">Guardar</button>
-
-<h2>Buscar paciente</h2>
-<input id="busqueda" placeholder="Buscar por nombre o ID" onkeyup="buscarPaciente()">
-
-<div id="formulario"></div>
-<div id="lista"></div>
-
-<button onclick="logout()">Cerrar sesión</button>
-
-</div>
-
-</div>
-
-<script>
-let pacientes = [];
-let pacienteIndex = null;
-
-// 🔐 Registro
-function register(){
-    const emailVal = document.getElementById("email").value;
-    const passwordVal = document.getElementById("password").value;
-    if(!emailVal || !passwordVal){
-        alert("Ingresa correo y contraseña");
-        return;
-    }
-    auth.createUserWithEmailAndPassword(emailVal, passwordVal)
-        .then(()=>alert("Usuario creado correctamente"))
-        .catch(e=>alert("Error: "+e.message));
-}
-
-// 🔐 Login
-function login(){
-    const emailVal = document.getElementById("email").value;
-    const passwordVal = document.getElementById("password").value;
-    if(!emailVal || !passwordVal){
-        alert("Ingresa correo y contraseña");
-        return;
-    }
-    auth.signInWithEmailAndPassword(emailVal, passwordVal)
-        .catch(e=>alert("Error: "+e.message));
-}
-
-// 🔒 Logout
-function logout(){
-    auth.signOut();
-}
-
-// 🔄 Manejar sesión
-auth.onAuthStateChanged(user=>{
-    if(user){
-        document.getElementById("login").style.display="none";
-        document.getElementById("app").style.display="block";
-        cargarDatos();
-    } else {
-        document.getElementById("login").style.display="block";
-        document.getElementById("app").style.display="none";
-    }
-});
-
-// 🆔 Generar ID
-function generarID(){
-    return "PAC-"+Math.floor(Math.random()*1000000);
-}
-
-// 💾 Guardar datos en Firestore
-function guardarDatos(){
-    const user = auth.currentUser;
-    if(!user) return;
-    db.collection("usuarios").doc(user.uid).set({ pacientes: pacientes });
-}
-
-// 📥 Cargar datos
-function cargarDatos(){
-    const user = auth.currentUser;
-    if(!user) return;
-    db.collection("usuarios").doc(user.uid).get()
-    .then(doc=>{
-        if(doc.exists){
-            pacientes = doc.data().pacientes || [];
-        } else {
-            pacientes = [];
-        }
-        mostrarPacientes();
-    });
-}
-
-// ➕ Crear paciente
-function crearPaciente(){
-    const nombreVal = document.getElementById("nombre").value;
-    const edadVal = document.getElementById("edad").value;
-    if(!nombreVal || !edadVal) return;
-    pacientes.push({
-        id: generarID(),
-        nombre: nombreVal,
-        edad: edadVal,
-        historial:[]
-    });
-    document.getElementById("nombre").value="";
-    document.getElementById("edad").value="";
-    guardarDatos();
-    mostrarPacientes();
-}
-
-// 📝 Nuevo registro
-function nuevoRegistro(i){
-    pacienteIndex = i;
-    document.getElementById("formulario").innerHTML = `
-        <input id="noPuede" placeholder="No puede hacer">
-        <textarea id="obs" placeholder="Observaciones"></textarea><br>
-        <button onclick="guardarRegistro()">Guardar</button>
-    `;
-}
-
-// 💾 Guardar registro
-function guardarRegistro(){
-    const noPuedeVal = document.getElementById("noPuede").value;
-    const obsVal = document.getElementById("obs").value;
-    if(!noPuedeVal && !obsVal) return;
-    pacientes[pacienteIndex].historial.push({
-        fecha: new Date().toLocaleDateString(),
-        noPuede: noPuedeVal,
-        obs: obsVal
-    });
-    guardarDatos();
-    document.getElementById("formulario").innerHTML="";
-    mostrarPacientes();
-}
-
-// 🗑️ Eliminar paciente o registro
-function eliminarPaciente(i){
-    if(!confirm("¿Eliminar paciente?")) return;
-    pacientes.splice(i,1);
-    guardarDatos();
-    mostrarPacientes();
-}
-function eliminarRegistro(p,r){
-    if(!confirm("¿Eliminar registro?")) return;
-    pacientes[p].historial.splice(r,1);
-    guardarDatos();
-    mostrarPacientes();
-}
-
-// 🔍 Buscar paciente
-function buscarPaciente(){
-    const filtro = document.getElementById("busqueda").value.toLowerCase();
-    mostrarPacientes(filtro);
-}
-
-// 📋 Mostrar pacientes
-function mostrarPacientes(filtro=""){
-    const lista = document.getElementById("lista");
-    lista.innerHTML="";
-    pacientes.forEach((p,i)=>{
-        if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
-            let historialHTML="";
-            p.historial.forEach((h,j)=>{
-                historialHTML+=`
-                <div class="historial">
-                    <b>${h.fecha}</b><br>
-                    ❌ ${h.noPuede}<br>
-                    📝 ${h.obs}<br>
-                    <button class="btn-eliminar" onclick="eliminarRegistro(${i},${j})">Eliminar</button>
-                </div>`;
-            });
-
-            lista.innerHTML+=`
-            <div class="card">
-                <h3>${p.nombre}</h3>
-                ID: ${p.id}<br>
-                Edad: ${p.edad}<br>
-                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
-                <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️</button>
-                ${historialHTML}
-            </div>`;
-        }
-    });
-}
-</script>
-
+<h1>Bienvenido a PsicoHealth</h1>
+<p>Seleccione la sección que desea visitar:</p>
+<button onclick="location.href='historial.html'">Historial de Pacientes</button>
+<button onclick="alert('Aquí iría Evaluación')">Evaluación de Pacientes</button>
 </body>
 </html>
