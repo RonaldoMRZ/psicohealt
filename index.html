@@ -3,118 +3,99 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evaluación del Paciente</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Historial de Pacientes</title>
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
 body {
-    font-family: 'Roboto', sans-serif;
-    background: linear-gradient(135deg, #e0f7fa, #fff3e0);
-    color: #333;
+    font-family: Arial;
+    background: #f0f4f8;
+    margin: 0;
 }
 
-/* HEADER */
 header {
     background: #0288d1;
     color: white;
+    padding: 20px;
     text-align: center;
-    padding: 25px 0;
-    font-size: 28px;
-    font-weight: 700;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    letter-spacing: 1px;
-    position: relative; /* IMPORTANTE */
+    font-size: 24px;
+    position: relative;
 }
 
-/* BOTÓN HISTORIAL */
-.btn-historial {
+.volver {
     position: absolute;
+    left: 20px;
     top: 20px;
-    right: 20px;
     background: white;
     color: #0288d1;
     border: none;
-    padding: 10px 15px;
+    padding: 8px 12px;
     border-radius: 8px;
-    font-weight: bold;
     cursor: pointer;
-    transition: 0.3s;
-}
-.btn-historial:hover {
-    background: #e1f5fe;
-    transform: scale(1.05);
 }
 
-/* CONTAINER */
 .container {
-    max-width: 800px;
-    margin: 30px auto;
     padding: 20px;
+    text-align: center;
 }
 
-/* INPUT Y BOTONES */
-input[type="number"] {
-    padding: 12px;
-    width: 120px;
-    font-size: 16px;
-    border: 2px solid #0288d1;
+input, textarea {
+    padding: 10px;
+    margin: 5px;
     border-radius: 8px;
-    margin-right: 10px;
+    border: 1px solid #ccc;
+    width: 250px;
+}
+
+textarea {
+    height: 80px;
+    resize: none;
 }
 
 button {
+    padding: 10px 15px;
     background: #0288d1;
     color: white;
     border: none;
-    padding: 12px 20px;
     border-radius: 8px;
-    font-size: 16px;
     cursor: pointer;
+    margin: 5px;
     transition: 0.3s;
 }
 button:hover {
     background: #00acc1;
-    transform: translateY(-2px);
+    transform: scale(1.05);
 }
 
-/* HABILIDADES */
-.habilidades-list {
-    margin-top: 20px;
-}
-
-/* CARD */
 .card {
     background: white;
-    border-radius: 15px;
-    padding: 20px;
-    margin: 15px 0;
-    box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-    text-align: center;
-    animation: fadeIn 0.5s ease;
-}
-
-.card img {
-    width: 150px;
+    margin: 15px auto;
+    padding: 15px;
     border-radius: 10px;
-    margin: 10px 0;
+    width: 320px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    text-align: left;
 }
 
-.card video {
-    width: 100%;
-    max-width: 400px;
+.historial {
+    background: #ffebee;
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.obs {
+    margin-top: 5px;
+    font-style: italic;
+    color: #444;
+}
+
+.form-box {
+    background: #fff;
+    margin: 20px auto;
+    padding: 15px;
     border-radius: 10px;
-}
-
-/* ANIMACIÓN */
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px);}
-    to { opacity: 1; transform: translateY(0);}
+    width: 320px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 </style>
 </head>
@@ -122,89 +103,134 @@ button:hover {
 <body>
 
 <header>
-    Evaluación del Paciente
-    <button class="btn-historial" onclick="window.location.href='historial.html'">
-        📋 Historial
-    </button>
+    <button class="volver" onclick="volver()">⬅</button>
+    Historial de Pacientes
 </header>
 
 <div class="container">
+
+    <h2>Agregar paciente</h2>
+    <input type="text" id="nombre" placeholder="Nombre">
     <input type="number" id="edad" placeholder="Edad">
-    <button onclick="evaluar()">Evaluar</button>
+    <br>
+    <button onclick="guardarPaciente()">Guardar paciente</button>
 
-    <h2>¿Qué habilidades carece el paciente?</h2>
-    <div class="habilidades-list" id="habilidades"></div>
-    
-    <button onclick="recomendar()">Recomendar ejercicios</button>
+    <h2>Pacientes</h2>
 
-    <div id="resultados"></div>
+    <div id="formRegistro"></div>
+    <div id="lista"></div>
+
 </div>
 
 <script>
-// HABILIDADES
-function obtenerHabilidades(edad){
-    if(edad >= 12){
-        return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];
-    } else if(edad >= 10){
-        return ["escribir","resolver problemas matematicos"];
-    } else if(edad >= 5){
-        return ["saltar","dibujar","hablar"];
-    } else if(edad >= 2){
-        return ["caminar","decir palabras sencillas"];
-    } else {
-        return ["girar la cabeza","sonreir","llorar"];
-    }
+
+let pacientes = JSON.parse(localStorage.getItem("pacientes")) || [];
+let pacienteActivo = null;
+
+function generarID(){
+    return "PAC-" + Date.now();
 }
 
-// EJERCICIOS
-const ejercicios = {
-    "caminar": {texto: "Caminar con apoyo", img: "caminar.png", video: "caminar.mp4"},
-    "hablar": {texto: "Practicar palabras", img: "hablar.png", video: "hablar.mp4"},
-    "saltar": {texto: "Saltos en colchoneta", img: "saltar.png", video: "saltar.mp4"},
-    "dibujar": {texto: "Dibujar con colores", img: "dibujar.png", video: "dibujar.mp4"}
-};
-
-function evaluar(){
+function guardarPaciente(){
+    let nombre = document.getElementById("nombre").value;
     let edad = document.getElementById("edad").value;
-    let contenedor = document.getElementById("habilidades");
-    contenedor.innerHTML = "";
 
-    let habilidades = obtenerHabilidades(edad);
+    if(!nombre || !edad){
+        alert("Completa todos los campos");
+        return;
+    }
 
-    habilidades.forEach(h => {
-        contenedor.innerHTML += `
-            <div>
-                <input type="checkbox" value="${h}"> ${h}
-            </div>
-        `;
+    pacientes.push({
+        id: generarID(),
+        nombre,
+        edad,
+        historial: []
     });
+
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+    mostrarPacientes();
 }
 
-function recomendar(){
-    let seleccionados = document.querySelectorAll("input:checked");
-    let resultados = document.getElementById("resultados");
-    resultados.innerHTML = "";
+function mostrarFormulario(index){
+    pacienteActivo = index;
 
-    seleccionados.forEach(el => {
-        let h = el.value;
-        let info = ejercicios[h] || {
-            texto: "Actividad sugerida: " + h,
-            img: "default.png",
-            video: "default.mp4"
-        };
+    document.getElementById("formRegistro").innerHTML = `
+        <div class="form-box">
+            <h3>Nuevo registro</h3>
 
-        resultados.innerHTML += `
+            <input type="text" id="noPuede" placeholder="¿Qué NO puede hacer?">
+            <br>
+
+            <textarea id="observacion" placeholder="Escribe observaciones del paciente..."></textarea>
+            <br>
+
+            <button onclick="guardarRegistro()">Guardar</button>
+        </div>
+    `;
+}
+
+function guardarRegistro(){
+    let noPuede = document.getElementById("noPuede").value;
+    let observacion = document.getElementById("observacion").value;
+
+    if(!noPuede){
+        alert("Escribe al menos una dificultad");
+        return;
+    }
+
+    let registro = {
+        fecha: new Date().toLocaleDateString(),
+        noPuede: noPuede.split(","),
+        observacion: observacion
+    };
+
+    pacientes[pacienteActivo].historial.push(registro);
+
+    localStorage.setItem("pacientes", JSON.stringify(pacientes));
+
+    document.getElementById("formRegistro").innerHTML = "";
+    mostrarPacientes();
+}
+
+function mostrarPacientes(){
+    let lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    pacientes.forEach((p, i) => {
+        let historialHTML = "";
+
+        p.historial.forEach(h => {
+            historialHTML += `
+                <div class="historial">
+                    <b>📅 ${h.fecha}</b><br>
+                    ❌ No puede: ${h.noPuede.join(", ")}<br>
+                    <div class="obs">📝 ${h.observacion}</div>
+                </div>
+            `;
+        });
+
+        lista.innerHTML += `
             <div class="card">
-                <h3>${h}</h3>
-                <p>${info.texto}</p>
-                <img src="${info.img}">
-                <video controls>
-                    <source src="${info.video}" type="video/mp4">
-                </video>
+                <h3>${p.nombre}</h3>
+                <p><b>ID:</b> ${p.id}</p>
+                <p>Edad: ${p.edad}</p>
+
+                <button onclick="mostrarFormulario(${i})">
+                    ➕ Nuevo registro
+                </button>
+
+                ${historialHTML}
             </div>
         `;
     });
 }
+
+function volver(){
+    window.location.href = "index.html";
+}
+
+mostrarPacientes();
+
 </script>
 
 </body>
