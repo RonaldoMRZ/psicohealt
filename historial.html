@@ -29,18 +29,29 @@ const db = firebase.firestore();
 <style>
 body {font-family: Arial; background:#f0f4f8; margin:0;}
 header {
-    background:#0288d1;color:white;padding:15px;
+    background:#0288d1; color:white; padding:15px;
     display:flex; justify-content:space-between; align-items:center;
 }
 header h1 {margin:0; font-size:20px;}
 button {padding:8px 15px; border:none; border-radius:6px; cursor:pointer;}
 #btnLogout {background:red; color:white;}
 .container {padding:20px; text-align:center;}
-input, textarea {padding:10px; margin:5px; width:250px; border-radius:8px; border:1px solid #ccc;}
-.card {background:white; margin:15px auto; padding:15px; border-radius:10px; width:320px; text-align:left;}
-.historial {background:#ffe0e0;padding:10px;margin-top:10px; border-radius:8px;}
+input, textarea {
+    padding:10px; margin:5px 0; width:90%; border-radius:6px; border:1px solid #ccc;
+}
+.card {
+    background:white; margin:15px auto; padding:15px;
+    border-radius:10px; width:320px; text-align:left;
+}
+.card h3 {margin:0 0 5px 0;}
+.card-buttons {display:flex; justify-content:space-between; margin:5px 0;}
+.historial {background:#ffe0e0; padding:10px; margin-top:10px; border-radius:6px;}
+.historial p {margin:3px 0;}
+.historial button {margin-top:5px;}
+#formulario {margin:10px 0;}
 </style>
 </head>
+
 <body>
 
 <header>
@@ -50,6 +61,7 @@ input, textarea {padding:10px; margin:5px; width:250px; border-radius:8px; borde
 </header>
 
 <div class="container">
+
 <div id="login">
 <h2>Iniciar sesión</h2>
 <input id="email" placeholder="Correo"><br>
@@ -60,9 +72,9 @@ input, textarea {padding:10px; margin:5px; width:250px; border-radius:8px; borde
 
 <div id="app" style="display:none;">
 <h2>Agregar paciente</h2>
-<input id="nombre" placeholder="Nombre">
+<input id="nombre" placeholder="Nombre"><br>
 <input id="edad" type="number" placeholder="Edad"><br>
-<button onclick="crearPaciente()">Guardar</button>
+<button onclick="crearPaciente()">Guardar paciente</button>
 
 <h2>Buscar paciente</h2>
 <input id="busqueda" placeholder="Buscar por nombre o ID" onkeyup="buscarPaciente()">
@@ -70,12 +82,14 @@ input, textarea {padding:10px; margin:5px; width:250px; border-radius:8px; borde
 <div id="formulario"></div>
 <div id="lista"></div>
 </div>
+
 </div>
 
 <script>
-let pacientes = [], pacienteIndex=null;
+let pacientes = [];
+let pacienteIndex = null;
 
-// Registro
+// 🔐 Registro
 function register(){
     const emailVal = document.getElementById("email").value;
     const passwordVal = document.getElementById("password").value;
@@ -85,7 +99,7 @@ function register(){
         .catch(e=>alert(e.message));
 }
 
-// Login
+// 🔐 Login
 function login(){
     const emailVal = document.getElementById("email").value;
     const passwordVal = document.getElementById("password").value;
@@ -94,32 +108,32 @@ function login(){
         .catch(e=>alert(e.message));
 }
 
-// Logout
+// 🔒 Logout
 function logout(){ auth.signOut(); }
 
-// Sesión
+// 🔄 Manejar sesión
 auth.onAuthStateChanged(user=>{
     if(user){
         document.getElementById("login").style.display="none";
         document.getElementById("app").style.display="block";
         cargarDatos();
-    }else{
+    } else {
         document.getElementById("login").style.display="block";
         document.getElementById("app").style.display="none";
     }
 });
 
-// ID
+// 🆔 Generar ID
 function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
 
-// Guardar datos
+// 💾 Guardar datos
 function guardarDatos(){
     const user = auth.currentUser;
     if(!user) return;
     db.collection("usuarios").doc(user.uid).set({pacientes: pacientes});
 }
 
-// Cargar datos
+// 📥 Cargar datos
 function cargarDatos(){
     const user = auth.currentUser;
     if(!user) return;
@@ -129,70 +143,83 @@ function cargarDatos(){
     });
 }
 
-// Crear paciente
+// ➕ Crear paciente
 function crearPaciente(){
     const nombreVal = document.getElementById("nombre").value;
     const edadVal = document.getElementById("edad").value;
     if(!nombreVal || !edadVal) return;
     pacientes.push({id: generarID(), nombre:nombreVal, edad:edadVal, historial:[]});
-    document.getElementById("nombre").value=""; document.getElementById("edad").value="";
-    guardarDatos(); mostrarPacientes();
+    document.getElementById("nombre").value="";
+    document.getElementById("edad").value="";
+    guardarDatos();
+    mostrarPacientes();
 }
 
-// Nuevo registro
+// 📝 Nuevo registro
 function nuevoRegistro(i){
-    pacienteIndex=i;
-    document.getElementById("formulario").innerHTML=`
-        <input id="noPuede" placeholder="No puede hacer">
+    pacienteIndex = i;
+    document.getElementById("formulario").innerHTML = `
+        <h3>Agregar Registro a ${pacientes[i].nombre}</h3>
+        <input id="noPuede" placeholder="No puede hacer"><br>
         <textarea id="obs" placeholder="Observaciones"></textarea><br>
-        <button onclick="guardarRegistro()">Guardar</button>
+        <button onclick="guardarRegistro()">Guardar registro</button>
+        <button onclick="cancelarRegistro()">Cancelar</button>
     `;
 }
 
-// Guardar registro
+function cancelarRegistro(){ document.getElementById("formulario").innerHTML=""; }
+
+// 💾 Guardar registro
 function guardarRegistro(){
-    const noPuedeVal=document.getElementById("noPuede").value;
-    const obsVal=document.getElementById("obs").value;
+    const noPuedeVal = document.getElementById("noPuede").value;
+    const obsVal = document.getElementById("obs").value;
     if(!noPuedeVal && !obsVal) return;
     pacientes[pacienteIndex].historial.push({
         fecha: new Date().toLocaleDateString(),
-        noPuede:noPuedeVal,
-        obs:obsVal
+        noPuede: noPuedeVal,
+        obs: obsVal
     });
     document.getElementById("formulario").innerHTML="";
     guardarDatos();
     mostrarPacientes();
 }
 
-// Eliminar
+// 🗑️ Eliminar paciente o registro
 function eliminarPaciente(i){ if(confirm("¿Eliminar paciente?")){ pacientes.splice(i,1); guardarDatos(); mostrarPacientes(); } }
 function eliminarRegistro(p,r){ if(confirm("¿Eliminar registro?")){ pacientes[p].historial.splice(r,1); guardarDatos(); mostrarPacientes(); } }
 
-// Buscar y mostrar
+// 🔍 Buscar paciente
 function buscarPaciente(){
     const filtro=document.getElementById("busqueda").value.toLowerCase();
     mostrarPacientes(filtro);
 }
 
+// 📋 Mostrar pacientes
 function mostrarPacientes(filtro=""){
-    const lista=document.getElementById("lista"); lista.innerHTML="";
+    const lista=document.getElementById("lista");
+    lista.innerHTML="";
     pacientes.forEach((p,i)=>{
         if(p.nombre.toLowerCase().includes(filtro)||p.id.toLowerCase().includes(filtro)){
-            let historialHTML="";
+            let historialHTML = "";
             p.historial.forEach((h,j)=>{
                 historialHTML+=`
                 <div class="historial">
-                    <b>${h.fecha}</b><br>
-                    ❌ ${h.noPuede}<br>
-                    📝 ${h.obs}<br>
-                    <button onclick="eliminarRegistro(${i},${j})" style="background:red;color:white;">Eliminar</button>
+                    <p><b>${h.fecha}</b></p>
+                    <p>❌ ${h.noPuede}</p>
+                    <p>📝 ${h.obs}</p>
+                    <button onclick="eliminarRegistro(${i},${j})" style="background:red;color:white;">Eliminar registro</button>
                 </div>`;
             });
+
             lista.innerHTML+=`
             <div class="card">
-                <h3>${p.nombre}</h3>ID: ${p.id}<br>Edad: ${p.edad}<br>
-                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
-                <button onclick="eliminarPaciente(${i})" style="background:red;color:white;">🗑️ Eliminar paciente</button>
+                <h3>${p.nombre}</h3>
+                <p>ID: ${p.id}</p>
+                <p>Edad: ${p.edad}</p>
+                <div class="card-buttons">
+                    <button onclick="nuevoRegistro(${i})">➕ Registro</button>
+                    <button onclick="eliminarPaciente(${i})" style="background:red;color:white;">🗑️ Eliminar paciente</button>
+                </div>
                 ${historialHTML}
             </div>`;
         }
