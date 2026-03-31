@@ -3,28 +3,88 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Página Principal</title>
+<title>Home - Sistema Clínico</title>
+
+<!-- FIREBASE SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyBNmNtKELNgO40l4wJKq6iNjwlEDPLQ1D8",
+    authDomain: "psicohealt-3cbbd.firebaseapp.com",
+    projectId: "psicohealt-3cbbd",
+    storageBucket: "psicohealt-3cbbd.firebasestorage.app",
+    messagingSenderId: "199080682822",
+    appId: "1:199080682822:web:6e4443e3cc16ccceb5f147",
+    measurementId: "G-EFDSDFET5F"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+</script>
+
 <style>
-body {font-family: Arial; text-align:center; padding:50px; background:#f0f4f8;}
-button {
-    padding:15px 25px;
-    margin:20px;
-    font-size:18px;
-    border-radius:8px;
-    cursor:pointer;
-    background:#0288d1;
-    color:white;
-    border:none;
-    transition:0.3s;
-}
-button:hover {background:#0277bd; transform: translateY(-2px);}
-h1 {color:#0288d1;}
+body {font-family: Arial; margin:0; background:#f0f4f8;}
+header {background:#0288d1;color:white;padding:20px;text-align:center;font-size:24px;}
+.container {padding:20px;text-align:center;}
+button {padding:10px 20px;margin:10px;background:#0288d1;color:white;border:none;border-radius:8px;cursor:pointer;}
 </style>
 </head>
+
 <body>
-<h1>Bienvenido a PsicoHealth</h1>
-<p>Seleccione la sección que desea visitar:</p>
-<button onclick="location.href='historial.html'">Historial de Pacientes</button>
-<button onclick="alert('Aquí iría Evaluación')">Evaluación de Pacientes</button>
+<header>🏥 Sistema Clínico</header>
+
+<div class="container" id="home">
+    <h2>Bienvenido al Sistema Clínico</h2>
+    <p>Gestiona pacientes, historial y evaluaciones</p>
+    <div id="home-buttons" style="display:none;">
+        <button onclick="window.location.href='historial.html'">📋 Historial</button>
+        <button onclick="window.location.href='evaluacion.html'">📝 Evaluación</button>
+        <button style="background:red;" onclick="logout()">Cerrar sesión</button>
+    </div>
+
+    <div id="login">
+        <h2>Login</h2>
+        <input id="email" placeholder="Correo"><br>
+        <input id="password" type="password" placeholder="Contraseña"><br>
+        <button onclick="login()">Entrar</button>
+        <button onclick="register()">Registrarse</button>
+    </div>
+</div>
+
+<script>
+function register(){
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
+    auth.createUserWithEmailAndPassword(emailVal,passwordVal)
+        .then(()=>alert("Usuario creado correctamente"))
+        .catch(e=>alert("Error: "+e.message));
+}
+
+function login(){
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
+    auth.signInWithEmailAndPassword(emailVal,passwordVal)
+        .catch(e=>alert("Error: "+e.message));
+}
+
+function logout(){ auth.signOut(); }
+
+auth.onAuthStateChanged(user=>{
+    if(user){
+        document.getElementById("login").style.display="none";
+        document.getElementById("home-buttons").style.display="block";
+    } else {
+        document.getElementById("login").style.display="block";
+        document.getElementById("home-buttons").style.display="none";
+    }
+});
+</script>
+
 </body>
 </html>
