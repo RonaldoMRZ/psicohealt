@@ -45,6 +45,12 @@ input, textarea {
     border: 1px solid #ccc;
 }
 
+/* BUSCADOR */
+#busqueda {
+    width: 270px;
+    border: 2px solid #0288d1;
+}
+
 textarea {
     height: 80px;
 }
@@ -113,6 +119,9 @@ button:hover {
 <input type="text" id="nombre" placeholder="Nombre">
 <input type="number" id="edad" placeholder="Edad"><br>
 <button onclick="crearPaciente()">Guardar</button>
+
+<h2>Buscar paciente</h2>
+<input type="text" id="busqueda" placeholder="Buscar por nombre o ID..." onkeyup="buscarPaciente()">
 
 <h2>Pacientes</h2>
 
@@ -249,6 +258,57 @@ function mostrarPacientes(){
                 ${hist}
             </div>
         `;
+    });
+
+    document.getElementById("busqueda").value = "";
+}
+
+// BUSCADOR
+function buscarPaciente(){
+    let texto = document.getElementById("busqueda").value.toLowerCase();
+    let lista = document.getElementById("lista");
+    lista.innerHTML = "";
+
+    pacientes.forEach((p, i) => {
+
+        if(
+            p.nombre.toLowerCase().includes(texto) ||
+            p.id.toLowerCase().includes(texto)
+        ){
+
+            let hist = "";
+
+            p.historial.forEach((h, j) => {
+                hist += `
+                    <div class="historial">
+                        <b>${h.fecha}</b><br>
+                        ❌ ${h.noPuede}<br>
+                        📝 ${h.obs}<br>
+                        <button class="btn-eliminar" onclick="eliminarRegistro(${i}, ${j})">
+                            🗑️ Eliminar registro
+                        </button>
+                    </div>
+                `;
+            });
+
+            lista.innerHTML += `
+                <div class="card">
+                    <h3>${p.nombre}</h3>
+                    <p>ID: ${p.id}</p>
+                    <p>Edad: ${p.edad}</p>
+
+                    <button onclick="nuevoRegistro(${i})">
+                        ➕ Registro
+                    </button>
+
+                    <button class="btn-eliminar" onclick="eliminarPaciente(${i})">
+                        🗑️ Eliminar paciente
+                    </button>
+
+                    ${hist}
+                </div>
+            `;
+        }
     });
 }
 
