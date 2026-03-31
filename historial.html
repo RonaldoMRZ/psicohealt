@@ -3,74 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sistema Clínico</title>
+<title>Historial de Pacientes</title>
 
-<!-- FIREBASE SDKs -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-  // 🔥 Configuración de Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyBNmNtKELNgO40l4wJKq6iNjwlEDPLQ1D8",
-    authDomain: "psicohealt-3cbbd.firebaseapp.com",
-    projectId: "psicohealt-3cbbd",
-    storageBucket: "psicohealt-3cbbd.firebasestorage.app",
-    messagingSenderId: "199080682822",
-    appId: "1:199080682822:web:6e4443e3cc16ccceb5f147",
-    measurementId: "G-EFDSDFET5F"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyBNmNtKELNgO40l4wJKq6iNjwlEDPLQ1D8",
+  authDomain: "psicohealt-3cbbd.firebaseapp.com",
+  projectId: "psicohealt-3cbbd",
+  storageBucket: "psicohealt-3cbbd.firebasestorage.app",
+  messagingSenderId: "199080682822",
+  appId: "1:199080682822:web:6e4443e3cc16ccceb5f147",
+  measurementId: "G-EFDSDFET5F"
+};
 
-  firebase.initializeApp(firebaseConfig);
-  const analytics = firebase.analytics();
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 </script>
 
 <style>
 body {font-family: Arial; background:#f0f4f8; margin:0;}
-header {background:#0288d1;color:white;padding:15px; display:flex; justify-content:space-between; align-items:center;}
-header h1 {margin:0; font-size:22px;}
-button {padding:8px 15px; border:none; border-radius:6px; cursor:pointer; font-size:14px; transition:0.3s;}
-button:hover {opacity:0.85;}
-.btn-inicio {background:#0277bd; color:white;}
-.btn-logout {background:#d32f2f; color:white;}
-.container {padding:20px;text-align:center;}
-input, textarea {
-    padding:10px; margin:5px; width:90%; max-width:300px;
-    border-radius:8px; border:1px solid #ccc; font-size:14px;
+header {
+    background:#0288d1;color:white;padding:15px;
+    display:flex; justify-content:space-between; align-items:center;
 }
-textarea {height:60px; resize:none;}
-.card {background:white; margin:15px auto; padding:15px; border-radius:10px; width:90%; max-width:350px; text-align:left;}
-.historial {background:#ffe0e0;padding:10px;margin-top:10px; border-radius:6px;}
-.btn-eliminar {background:red; color:white; margin-top:5px; padding:5px 10px; font-size:12px;}
-label {display:block; margin-top:10px; font-weight:600;}
-.form-registro {background:#e0f7fa; padding:15px; border-radius:8px; margin:10px 0;}
+header h1 {margin:0; font-size:20px;}
+button {padding:8px 15px; border:none; border-radius:6px; cursor:pointer;}
+#btnLogout {background:red; color:white;}
+.container {padding:20px; text-align:center;}
+input, textarea {padding:10px; margin:5px; width:250px; border-radius:8px; border:1px solid #ccc;}
+.card {background:white; margin:15px auto; padding:15px; border-radius:10px; width:320px; text-align:left;}
+.historial {background:#ffe0e0;padding:10px;margin-top:10px; border-radius:8px;}
 </style>
 </head>
-
 <body>
 
 <header>
-  <button class="btn-inicio" onclick="irInicio()">🏠 Inicio</button>
-  <h1>Sistema de Pacientes</h1>
-  <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    <button onclick="location.href='index.html'">🏠 Home</button>
+    <h1>Historial de Pacientes</h1>
+    <button id="btnLogout" onclick="logout()">Cerrar sesión</button>
 </header>
 
 <div class="container">
-
-<!-- LOGIN -->
 <div id="login">
-<h2>Login</h2>
+<h2>Iniciar sesión</h2>
 <input id="email" placeholder="Correo"><br>
 <input id="password" type="password" placeholder="Contraseña"><br>
 <button onclick="login()">Entrar</button>
 <button onclick="register()">Registrarse</button>
 </div>
 
-<!-- APP -->
 <div id="app" style="display:none;">
 <h2>Agregar paciente</h2>
 <input id="nombre" placeholder="Nombre">
@@ -82,155 +69,135 @@ label {display:block; margin-top:10px; font-weight:600;}
 
 <div id="formulario"></div>
 <div id="lista"></div>
-
 </div>
-
 </div>
 
 <script>
-let pacientes = [];
-let pacienteIndex = null;
+let pacientes = [], pacienteIndex=null;
 
-// 🔐 Registro
+// Registro
 function register(){
     const emailVal = document.getElementById("email").value;
     const passwordVal = document.getElementById("password").value;
     if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
-    auth.createUserWithEmailAndPassword(emailVal, passwordVal)
-        .then(()=>{ alert("Usuario creado correctamente"); document.getElementById("email").value=""; document.getElementById("password").value=""; })
-        .catch(e=>alert("Error: "+e.message));
+    auth.createUserWithEmailAndPassword(emailVal,passwordVal)
+        .then(()=>alert("Usuario creado correctamente"))
+        .catch(e=>alert(e.message));
 }
 
-// 🔐 Login
+// Login
 function login(){
     const emailVal = document.getElementById("email").value;
     const passwordVal = document.getElementById("password").value;
     if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
-    auth.signInWithEmailAndPassword(emailVal, passwordVal)
-        .then(()=>{ alert("Login exitoso. Cargando datos..."); document.getElementById("email").value=""; document.getElementById("password").value=""; })
-        .catch(e=>alert("Error: "+e.message));
+    auth.signInWithEmailAndPassword(emailVal,passwordVal)
+        .catch(e=>alert(e.message));
 }
 
-// 🔒 Logout
+// Logout
 function logout(){ auth.signOut(); }
 
-// 🏠 Ir a página principal
-function irInicio(){ window.location.href="index.html"; } // Cambia a tu página principal
-
-// 🔄 Manejar sesión
+// Sesión
 auth.onAuthStateChanged(user=>{
-    const loginDiv = document.getElementById("login");
-    const appDiv = document.getElementById("app");
     if(user){
-        loginDiv.style.display="none";
-        appDiv.style.display="block";
+        document.getElementById("login").style.display="none";
+        document.getElementById("app").style.display="block";
         cargarDatos();
-    } else {
-        loginDiv.style.display="block";
-        appDiv.style.display="none";
+    }else{
+        document.getElementById("login").style.display="block";
+        document.getElementById("app").style.display="none";
     }
 });
 
-// 🆔 Generar ID
+// ID
 function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
 
-// 💾 Guardar datos en Firestore
+// Guardar datos
 function guardarDatos(){
     const user = auth.currentUser;
     if(!user) return;
-    db.collection("usuarios").doc(user.uid).set({ pacientes: pacientes }, { merge:true })
-        .then(()=>console.log("Datos guardados"))
-        .catch(e=>alert("Error guardando datos: "+e.message));
+    db.collection("usuarios").doc(user.uid).set({pacientes: pacientes});
 }
 
-// 📥 Cargar datos
+// Cargar datos
 function cargarDatos(){
     const user = auth.currentUser;
     if(!user) return;
-    db.collection("usuarios").doc(user.uid).get()
-    .then(doc=>{
-        if(doc.exists){ pacientes = doc.data().pacientes || []; }
-        else { pacientes = []; }
+    db.collection("usuarios").doc(user.uid).get().then(doc=>{
+        pacientes = doc.exists ? doc.data().pacientes || [] : [];
         mostrarPacientes();
-    })
-    .catch(e=>alert("Error cargando datos: "+e.message));
+    });
 }
 
-// ➕ Crear paciente
+// Crear paciente
 function crearPaciente(){
     const nombreVal = document.getElementById("nombre").value;
     const edadVal = document.getElementById("edad").value;
     if(!nombreVal || !edadVal) return;
-    pacientes.push({ id: generarID(), nombre: nombreVal, edad: edadVal, historial: [] });
+    pacientes.push({id: generarID(), nombre:nombreVal, edad:edadVal, historial:[]});
     document.getElementById("nombre").value=""; document.getElementById("edad").value="";
     guardarDatos(); mostrarPacientes();
 }
 
-// 📝 Nuevo registro con formulario limpio
+// Nuevo registro
 function nuevoRegistro(i){
-    pacienteIndex = i;
-    document.getElementById("formulario").innerHTML = `
-        <div class="form-registro">
-            <label for="noPuede">❌ Actividades que no puede hacer:</label>
-            <input id="noPuede" placeholder="Ej: Saltar, Hablar">
-            <label for="obs">📝 Observaciones:</label>
-            <textarea id="obs" placeholder="Descripción del desarrollo del paciente"></textarea>
-            <button onclick="guardarRegistro()">Guardar registro</button>
-        </div>
+    pacienteIndex=i;
+    document.getElementById("formulario").innerHTML=`
+        <input id="noPuede" placeholder="No puede hacer">
+        <textarea id="obs" placeholder="Observaciones"></textarea><br>
+        <button onclick="guardarRegistro()">Guardar</button>
     `;
 }
 
-// 💾 Guardar registro
+// Guardar registro
 function guardarRegistro(){
-    if(!noPuede.value && !obs.value) return;
+    const noPuedeVal=document.getElementById("noPuede").value;
+    const obsVal=document.getElementById("obs").value;
+    if(!noPuedeVal && !obsVal) return;
     pacientes[pacienteIndex].historial.push({
         fecha: new Date().toLocaleDateString(),
-        noPuede: noPuede.value,
-        obs: obs.value
+        noPuede:noPuedeVal,
+        obs:obsVal
     });
     document.getElementById("formulario").innerHTML="";
-    guardarDatos(); mostrarPacientes();
+    guardarDatos();
+    mostrarPacientes();
 }
 
-// 🗑️ Eliminar paciente o registro
-function eliminarPaciente(i){ if(!confirm("¿Eliminar paciente?")) return; pacientes.splice(i,1); guardarDatos(); mostrarPacientes(); }
-function eliminarRegistro(p,r){ if(!confirm("¿Eliminar registro?")) return; pacientes[p].historial.splice(r,1); guardarDatos(); mostrarPacientes(); }
+// Eliminar
+function eliminarPaciente(i){ if(confirm("¿Eliminar paciente?")){ pacientes.splice(i,1); guardarDatos(); mostrarPacientes(); } }
+function eliminarRegistro(p,r){ if(confirm("¿Eliminar registro?")){ pacientes[p].historial.splice(r,1); guardarDatos(); mostrarPacientes(); } }
 
-// 🔍 Buscar paciente
+// Buscar y mostrar
 function buscarPaciente(){
-    const t = document.getElementById("busqueda").value.toLowerCase();
-    mostrarPacientes(t);
+    const filtro=document.getElementById("busqueda").value.toLowerCase();
+    mostrarPacientes(filtro);
 }
 
-// 📋 Mostrar pacientes
 function mostrarPacientes(filtro=""){
-    const lista = document.getElementById("lista");
-    lista.innerHTML="";
+    const lista=document.getElementById("lista"); lista.innerHTML="";
     pacientes.forEach((p,i)=>{
-        if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
-            let hist="";
+        if(p.nombre.toLowerCase().includes(filtro)||p.id.toLowerCase().includes(filtro)){
+            let historialHTML="";
             p.historial.forEach((h,j)=>{
-                hist+=`
+                historialHTML+=`
                 <div class="historial">
                     <b>${h.fecha}</b><br>
                     ❌ ${h.noPuede}<br>
                     📝 ${h.obs}<br>
-                    <button class="btn-eliminar" onclick="eliminarRegistro(${i},${j})">Eliminar</button>
+                    <button onclick="eliminarRegistro(${i},${j})" style="background:red;color:white;">Eliminar</button>
                 </div>`;
             });
             lista.innerHTML+=`
             <div class="card">
-                <h3>${p.nombre}</h3>
-                ID: ${p.id}<br>
-                Edad: ${p.edad}<br>
-                <button onclick="nuevoRegistro(${i})">➕ Nuevo Registro</button>
-                <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️ Eliminar Paciente</button>
-                ${hist}
+                <h3>${p.nombre}</h3>ID: ${p.id}<br>Edad: ${p.edad}<br>
+                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
+                <button onclick="eliminarPaciente(${i})" style="background:red;color:white;">🗑️ Eliminar paciente</button>
+                ${historialHTML}
             </div>`;
         }
     });
 }
 </script>
-
 </body>
 </html>
