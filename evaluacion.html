@@ -7,11 +7,12 @@
 
 <!-- FIREBASE SDKs -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
-const firebaseConfig = {
+  const firebaseConfig = {
     apiKey: "AIzaSyBNmNtKELNgO40l4wJKq6iNjwlEDPLQ1D8",
     authDomain: "psicohealt-3cbbd.firebaseapp.com",
     projectId: "psicohealt-3cbbd",
@@ -19,80 +20,184 @@ const firebaseConfig = {
     messagingSenderId: "199080682822",
     appId: "1:199080682822:web:6e4443e3cc16ccceb5f147",
     measurementId: "G-EFDSDFET5F"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+  };
+  firebase.initializeApp(firebaseConfig);
+  const analytics = firebase.analytics();
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 </script>
 
 <style>
-body {font-family: Arial; margin:0; background:#f0f4f8;}
-header {background:#0288d1;color:white;padding:20px;text-align:center;font-size:24px; display:flex; justify-content: space-between; align-items:center;}
-header button {background:red;color:white;border:none;border-radius:8px;padding:5px 10px;cursor:pointer;}
-.container {padding:20px;}
+body {font-family: Arial; background:#f0f4f8; margin:0;}
+header {background:#0288d1;color:white;padding:15px; display:flex; justify-content: space-between; align-items:center;}
+header h1 {margin:0; font-size:20px;}
+header button {background:red;color:white;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;}
+.container {padding:20px;text-align:center;}
 input, textarea {padding:10px;margin:5px;width:250px;border-radius:8px;border:1px solid #ccc;}
 button {padding:10px 15px;margin:5px;background:#0288d1;color:white;border:none;border-radius:8px;cursor:pointer;}
 .card {background:white;margin:15px auto;padding:15px;border-radius:10px;width:320px;text-align:left;}
 .historial {background:#ffe0e0;padding:10px;margin-top:10px;}
+.btn-eliminar {background:red; color:white;}
+.nav-buttons {margin-bottom:15px;}
+.nav-buttons button {background:#0288d1;}
 </style>
 </head>
 
 <body>
+
 <header>
-    <button onclick="window.location.href='index.html'">🏠 Home</button>
-    Evaluación de Pacientes
-    <button onclick="logout()">Cerrar sesión</button>
+  <button onclick="window.location.href='index.html'">🏠 Home</button>
+  <h1>Evaluación de Pacientes</h1>
+  <button onclick="window.location.href='historial.html'">📋 Historial</button>
 </header>
 
 <div class="container">
-    <h2>Selecciona un paciente</h2>
-    <input id="busqueda" placeholder="Buscar paciente" onkeyup="buscarPaciente()">
-    <div id="lista"></div>
-    <div id="formulario"></div>
+
+<!-- LOGIN -->
+<div id="login">
+<h2>Login</h2>
+<input id="email" placeholder="Correo"><br>
+<input id="password" type="password" placeholder="Contraseña"><br>
+<button onclick="login()">Entrar</button>
+<button onclick="register()">Registrarse</button>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;">
+
+<h2>Agregar paciente</h2>
+<input id="nombre" placeholder="Nombre">
+<input id="edad" type="number" placeholder="Edad"><br>
+<button onclick="crearPaciente()">Guardar</button>
+
+<h2>Buscar paciente</h2>
+<input id="busqueda" placeholder="Buscar por nombre o ID" onkeyup="buscarPaciente()">
+
+<div id="formulario"></div>
+<div id="lista"></div>
+
+<button style="background:red;" onclick="logout()">Cerrar sesión</button>
+
+</div>
+
 </div>
 
 <script>
-let pacientes=[], pacienteIndex=null;
+let pacientes = [];
+let pacienteIndex = null;
 
-function logout(){ auth.signOut(); }
-
-auth.onAuthStateChanged(user=>{
-    if(!user){ window.location.href="index.html"; } else { cargarDatos(); }
-});
-
-function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
-function guardarDatos(){ const user=auth.currentUser; if(!user)return; db.collection("usuarios").doc(user.uid).set({pacientes}); }
-function cargarDatos(){ const user=auth.currentUser; if(!user)return; db.collection("usuarios").doc(user.uid).get().then(doc=>{ pacientes=doc.exists?doc.data().pacientes||[]:[]; mostrarPacientes(); }); }
-
-function nuevoRegistro(i){
-    pacienteIndex=i;
-    document.getElementById("formulario").innerHTML=`<h3>${pacientes[i].nombre}</h3>
-        <input id="noPuede" placeholder="No puede hacer">
-        <textarea id="obs" placeholder="Observaciones"></textarea><br>
-        <button onclick="guardarRegistro()">Guardar</button>`;
+// Registro
+function register(){
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
+    auth.createUserWithEmailAndPassword(emailVal,passwordVal)
+        .then(()=>alert("Usuario creado correctamente"))
+        .catch(e=>alert("Error: "+e.message));
 }
 
+// Login
+function login(){
+    const emailVal = document.getElementById("email").value;
+    const passwordVal = document.getElementById("password").value;
+    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
+    auth.signInWithEmailAndPassword(emailVal,passwordVal)
+        .catch(e=>alert("Error: "+e.message));
+}
+
+// Logout
+function logout(){ auth.signOut(); }
+
+// Manejar sesión
+auth.onAuthStateChanged(user=>{
+    if(user){
+        document.getElementById("login").style.display="none";
+        document.getElementById("app").style.display="block";
+        cargarDatos();
+    } else {
+        document.getElementById("login").style.display="block";
+        document.getElementById("app").style.display="none";
+    }
+});
+
+// Generar ID
+function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
+
+// Guardar datos
+function guardarDatos(){ const user = auth.currentUser; if(!user) return; db.collection("usuarios").doc(user.uid).set({pacientes}); }
+
+// Cargar datos
+function cargarDatos(){ 
+    const user = auth.currentUser; 
+    if(!user) return; 
+    db.collection("usuarios").doc(user.uid).get()
+    .then(doc=>{ pacientes = doc.exists ? doc.data().pacientes || [] : []; mostrarPacientes(); });
+}
+
+// Crear paciente
+function crearPaciente(){
+    const nombreVal = document.getElementById("nombre").value;
+    const edadVal = document.getElementById("edad").value;
+    if(!nombreVal || !edadVal) return;
+    pacientes.push({id: generarID(), nombre: nombreVal, edad: edadVal, historial:[]});
+    document.getElementById("nombre").value=""; document.getElementById("edad").value="";
+    guardarDatos(); mostrarPacientes();
+}
+
+// Nuevo registro
+function nuevoRegistro(i){
+    pacienteIndex=i;
+    document.getElementById("formulario").innerHTML=`
+        <input id="noPuede" placeholder="No puede hacer">
+        <textarea id="obs" placeholder="Observaciones"></textarea><br>
+        <button onclick="guardarRegistro()">Guardar</button>
+    `;
+}
+
+// Guardar registro
 function guardarRegistro(){
     const noPuedeVal=document.getElementById("noPuede").value;
     const obsVal=document.getElementById("obs").value;
     if(!noPuedeVal && !obsVal) return;
-    pacientes[pacienteIndex].historial.push({fecha:new Date().toLocaleDateString(),noPuede:noPuedeVal,obs:obsVal});
+    pacientes[pacienteIndex].historial.push({fecha:new Date().toLocaleDateString(), noPuede:noPuedeVal, obs:obsVal});
     guardarDatos(); document.getElementById("formulario").innerHTML=""; mostrarPacientes();
 }
 
+// Eliminar paciente/registro
+function eliminarPaciente(i){ if(!confirm("¿Eliminar paciente?")) return; pacientes.splice(i,1); guardarDatos(); mostrarPacientes(); }
+function eliminarRegistro(p,r){ if(!confirm("¿Eliminar registro?")) return; pacientes[p].historial.splice(r,1); guardarDatos(); mostrarPacientes(); }
+
+// Buscar paciente
 function buscarPaciente(){ mostrarPacientes(document.getElementById("busqueda").value.toLowerCase()); }
 
+// Mostrar pacientes
 function mostrarPacientes(filtro=""){
     const lista=document.getElementById("lista"); lista.innerHTML="";
     pacientes.forEach((p,i)=>{
-        if(p.nombre.toLowerCase().includes(filtro)||p.id.toLowerCase().includes(filtro)){
-            lista.innerHTML+=`<div class="card">
-                <h3>${p.nombre}</h3>ID: ${p.id}<br>Edad: ${p.edad}<br>
-                <button onclick="nuevoRegistro(${i})">➕ Evaluar</button>
+        if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
+            let historialHTML="";
+            p.historial.forEach((h,j)=>{
+                historialHTML+=`
+                <div class="historial">
+                    <b>${h.fecha}</b><br>
+                    ❌ ${h.noPuede}<br>
+                    📝 ${h.obs}<br>
+                    <button class="btn-eliminar" onclick="eliminarRegistro(${i},${j})">Eliminar</button>
+                </div>`;
+            });
+            lista.innerHTML+=`
+            <div class="card">
+                <h3>${p.nombre}</h3>
+                ID: ${p.id}<br>
+                Edad: ${p.edad}<br>
+                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
+                <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️</button>
+                ${historialHTML}
             </div>`;
         }
     });
 }
 </script>
+
 </body>
 </html>
