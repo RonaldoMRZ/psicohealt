@@ -6,7 +6,6 @@
 <title>Sistema Clínico</title>
 
 <!-- FIREBASE -->
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -22,16 +21,15 @@ const firebaseConfig = {
   measurementId: "G-EFDSDFET5F"
 };
 
-// INICIALIZAR
 firebase.initializeApp(firebaseConfig);
 
-// SERVICIOS
 const auth = firebase.auth();
 const db = firebase.firestore();
 </script>
+
 <style>
 body {font-family: Arial; background:#f0f4f8; margin:0;}
-header {background:#0288d1;color:white;padding:20px;text-align:center;}
+header {background:#0288d1;color:white;padding:20px;text-align:center; font-size:22px; font-weight:bold;}
 .container {padding:20px;text-align:center;}
 input, textarea {
     padding:10px; margin:5px; width:250px;
@@ -42,12 +40,16 @@ button {
     color:white; border:none; border-radius:8px;
     cursor:pointer; margin:5px;
 }
+button:hover {background:#00acc1;}
 .card {
     background:white; margin:15px auto; padding:15px;
-    border-radius:10px; width:320px;
+    border-radius:10px; width:350px; text-align:left;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
-.historial {background:#ffe0e0;padding:10px;margin-top:10px;}
-.btn-eliminar {background:red;}
+.historial {background:#ffe0e0;padding:10px;margin-top:10px;border-radius:6px;}
+.btn-eliminar {background:red;color:white;}
+#app {display:none;}
+#login input, #app input, #app textarea {width:80%; max-width:300px;}
 </style>
 </head>
 
@@ -59,7 +61,7 @@ button {
 
 <!-- LOGIN -->
 <div id="login">
-<h2>Login</h2>
+<h2>Login / Registro</h2>
 <input id="email" placeholder="Correo"><br>
 <input id="password" type="password" placeholder="Contraseña"><br>
 <button onclick="login()">Entrar</button>
@@ -67,19 +69,20 @@ button {
 </div>
 
 <!-- APP -->
-<div id="app" style="display:none;">
+<div id="app">
 
 <h2>Agregar paciente</h2>
 <input id="nombre" placeholder="Nombre">
 <input id="edad" type="number" placeholder="Edad"><br>
-<button onclick="crearPaciente()">Guardar</button>
+<button onclick="crearPaciente()">Guardar paciente</button>
 
-<h2>Buscar</h2>
-<input id="busqueda" placeholder="Buscar..." onkeyup="buscarPaciente()">
+<h2>Buscar paciente</h2>
+<input id="busqueda" placeholder="Buscar por nombre o ID" onkeyup="buscarPaciente()">
 
 <div id="formulario"></div>
 <div id="lista"></div>
 
+<br>
 <button onclick="logout()">Cerrar sesión</button>
 
 </div>
@@ -87,149 +90,137 @@ button {
 </div>
 
 <script>
-
-// 🔥 CONFIGURA AQUÍ
-const firebaseConfig = {
-  apiKey: "AQUI_TU_API_KEY",
-  authDomain: "AQUI_TU_DOMINIO",
-  projectId: "AQUI_TU_PROJECT_ID"
-};
-
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-
 let pacientes = [];
 let pacienteIndex = null;
 
-// 🔐 LOGIN
+// LOGIN & REGISTRO
 function register(){
-    auth.createUserWithEmailAndPassword(
-        email.value, password.value
-    ).then(()=>alert("Usuario creado"))
-    .catch(e=>alert(e.message));
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+    auth.createUserWithEmailAndPassword(email, password)
+        .then(()=> alert("Usuario creado correctamente"))
+        .catch(e=> alert(e.message));
 }
 
 function login(){
-    auth.signInWithEmailAndPassword(
-        email.value, password.value
-    ).catch(e=>alert(e.message));
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+    auth.signInWithEmailAndPassword(email, password)
+        .catch(e=> alert(e.message));
 }
 
-function logout(){
-    auth.signOut();
-}
+function logout(){ auth.signOut(); }
 
-// 🔄 SESIÓN
+// SESIÓN
 auth.onAuthStateChanged(user=>{
     if(user){
-        login.style.display="none";
-        app.style.display="block";
+        document.getElementById("login").style.display="none";
+        document.getElementById("app").style.display="block";
         cargarDatos();
     } else {
-        login.style.display="block";
-        app.style.display="none";
+        document.getElementById("login").style.display="block";
+        document.getElementById("app").style.display="none";
     }
 });
 
-// 🆔 ID
-function generarID(){
-    return "PAC-"+Math.floor(Math.random()*1000000);
-}
+// GENERAR ID
+function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
 
-// 💾 GUARDAR
+// GUARDAR Y CARGAR DATOS
 function guardarDatos(){
     let user = auth.currentUser;
-    db.collection("pacientes").doc(user.uid).set({
-        datos: pacientes
-    });
+    db.collection("pacientes").doc(user.uid).set({datos: pacientes});
 }
 
-// 📥 CARGAR
 function cargarDatos(){
     let user = auth.currentUser;
     db.collection("pacientes").doc(user.uid).get()
     .then(doc=>{
-        if(doc.exists){
-            pacientes = doc.data().datos;
-        }
+        if(doc.exists) pacientes = doc.data().datos;
         mostrarPacientes();
     });
 }
 
-// ➕ CREAR
+// CREAR PACIENTE
 function crearPaciente(){
-    if(!nombre.value || !edad.value) return;
+    let nombreV = document.getElementById("nombre").value;
+    let edadV = document.getElementById("edad").value;
+    if(!nombreV || !edadV) return alert("Nombre y edad son obligatorios");
 
     pacientes.push({
         id: generarID(),
-        nombre: nombre.value,
-        edad: edad.value,
+        nombre: nombreV,
+        edad: edadV,
         historial:[]
     });
-
     guardarDatos();
     mostrarPacientes();
+    document.getElementById("nombre").value="";
+    document.getElementById("edad").value="";
 }
 
-// 📝 NUEVO REGISTRO
+// NUEVO REGISTRO
 function nuevoRegistro(i){
     pacienteIndex = i;
-
-    formulario.innerHTML = `
+    document.getElementById("formulario").innerHTML=`
         <input id="noPuede" placeholder="No puede hacer">
-        <textarea id="obs" placeholder="Observaciones"></textarea>
-        <button onclick="guardarRegistro()">Guardar</button>
+        <textarea id="obs" placeholder="Observaciones"></textarea><br>
+        <button onclick="guardarRegistro()">Guardar registro</button>
     `;
 }
 
-// 💾 GUARDAR REGISTRO
+// GUARDAR REGISTRO
 function guardarRegistro(){
+    let noPuedeV = document.getElementById("noPuede").value;
+    let obsV = document.getElementById("obs").value;
+    if(!noPuedeV) return alert("Debes indicar lo que el paciente no puede hacer");
+
     pacientes[pacienteIndex].historial.push({
         fecha: new Date().toLocaleDateString(),
-        noPuede: noPuede.value,
-        obs: obs.value
+        noPuede: noPuedeV,
+        obs: obsV
     });
-
     guardarDatos();
-    formulario.innerHTML="";
+    document.getElementById("formulario").innerHTML="";
     mostrarPacientes();
 }
 
-// 🗑️ ELIMINAR
+// ELIMINAR PACIENTE
 function eliminarPaciente(i){
-    pacientes.splice(i,1);
-    guardarDatos();
-    mostrarPacientes();
+    if(confirm("¿Eliminar este paciente?")) {
+        pacientes.splice(i,1);
+        guardarDatos();
+        mostrarPacientes();
+    }
 }
 
+// ELIMINAR REGISTRO
 function eliminarRegistro(p,r){
-    pacientes[p].historial.splice(r,1);
-    guardarDatos();
-    mostrarPacientes();
+    if(confirm("¿Eliminar este registro?")){
+        pacientes[p].historial.splice(r,1);
+        guardarDatos();
+        mostrarPacientes();
+    }
 }
 
-// 🔍 BUSCAR
+// BUSCAR PACIENTE
 function buscarPaciente(){
-    let t = busqueda.value.toLowerCase();
-    mostrarPacientes(t);
+    let filtro = document.getElementById("busqueda").value.toLowerCase();
+    mostrarPacientes(filtro);
 }
 
-// 📋 MOSTRAR
+// MOSTRAR PACIENTES
 function mostrarPacientes(filtro=""){
+    let lista = document.getElementById("lista");
     lista.innerHTML="";
 
     pacientes.forEach((p,i)=>{
-        if(
-            p.nombre.toLowerCase().includes(filtro) ||
-            p.id.toLowerCase().includes(filtro)
-        ){
-
+        if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
             let hist="";
             p.historial.forEach((h,j)=>{
                 hist+=`
                 <div class="historial">
-                    ${h.fecha}<br>
+                    <strong>${h.fecha}</strong><br>
                     ❌ ${h.noPuede}<br>
                     📝 ${h.obs}<br>
                     <button class="btn-eliminar" onclick="eliminarRegistro(${i},${j})">Eliminar</button>
@@ -241,16 +232,13 @@ function mostrarPacientes(filtro=""){
                 <h3>${p.nombre}</h3>
                 ID: ${p.id}<br>
                 Edad: ${p.edad}<br>
-
-                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
-                <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️</button>
-
+                <button onclick="nuevoRegistro(${i})">➕ Nuevo registro</button>
+                <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️ Eliminar paciente</button>
                 ${hist}
             </div>`;
         }
     });
 }
-
 </script>
 
 </body>
