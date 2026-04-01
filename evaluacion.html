@@ -61,9 +61,16 @@ button {
     margin:20px auto;
     padding:15px;
     border-radius:10px;
-    width:340px;
+    width:350px;
     text-align:left;
     box-shadow:0 4px 10px rgba(0,0,0,0.2);
+}
+
+.check-item {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:5px 0;
 }
 
 .resultado {
@@ -73,15 +80,8 @@ button {
     margin-top:5px;
 }
 
-img {
+img, video {
     width:100%;
-    margin-top:10px;
-    border-radius:8px;
-}
-
-iframe {
-    width:100%;
-    height:200px;
     margin-top:10px;
     border-radius:8px;
 }
@@ -156,9 +156,9 @@ function evaluar(){
 
     habilidades.forEach(h=>{
         cont.innerHTML += `
-        <div>
+        <div class="check-item">
             <input type="checkbox" value="${h}">
-            ${h}
+            <label>${h}</label>
         </div>`;
     });
 }
@@ -186,18 +186,16 @@ function generar(){
             html += `<div class="resultado">✔ ${e}</div>`;
         });
 
-        // INPUTS PARA IMAGEN Y VIDEO
+        // SUBIR IMAGEN Y VIDEO
         html += `
         <br>
-        <b>Imagen del ejercicio:</b><br>
-        <input id="img${index}" placeholder="URL de imagen">
-        <button onclick="mostrarImagen(${index})">Mostrar</button>
+        <b>Subir imagen del ejercicio:</b><br>
+        <input type="file" accept="image/*" onchange="mostrarImagen(event, ${index})">
         <div id="verImg${index}"></div>
 
         <br>
-        <b>Video del ejercicio (YouTube):</b><br>
-        <input id="vid${index}" placeholder="URL de YouTube">
-        <button onclick="mostrarVideo(${index})">Mostrar</button>
+        <b>Subir video del ejercicio:</b><br>
+        <input type="file" accept="video/*" onchange="mostrarVideo(event, ${index})">
         <div id="verVid${index}"></div>
 
         </div>`;
@@ -207,20 +205,22 @@ function generar(){
 }
 
 // MOSTRAR IMAGEN
-function mostrarImagen(i){
-    let url = document.getElementById("img"+i).value;
-    document.getElementById("verImg"+i).innerHTML = `<img src="${url}">`;
+function mostrarImagen(event, i){
+    let file = event.target.files[0];
+    if(file){
+        let url = URL.createObjectURL(file);
+        document.getElementById("verImg"+i).innerHTML = `<img src="${url}">`;
+    }
 }
 
 // MOSTRAR VIDEO
-function mostrarVideo(i){
-    let url = document.getElementById("vid"+i).value;
-
-    // convertir link a embed
-    let embed = url.replace("watch?v=", "embed/");
-
-    document.getElementById("verVid"+i).innerHTML =
-        `<iframe src="${embed}" allowfullscreen></iframe>`;
+function mostrarVideo(event, i){
+    let file = event.target.files[0];
+    if(file){
+        let url = URL.createObjectURL(file);
+        document.getElementById("verVid"+i).innerHTML =
+            `<video controls src="${url}"></video>`;
+    }
 }
 
 </script>
