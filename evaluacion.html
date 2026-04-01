@@ -3,200 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Evaluación - Sistema Clínico</title>
-
-<!-- FIREBASE SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBNmNtKELNgO40l4wJKq6iNjwlEDPLQ1D8",
-    authDomain: "psicohealt-3cbbd.firebaseapp.com",
-    projectId: "psicohealt-3cbbd",
-    storageBucket: "psicohealt-3cbbd.firebasestorage.app",
-    messagingSenderId: "199080682822",
-    appId: "1:199080682822:web:6e4443e3cc16ccceb5f147",
-    measurementId: "G-EFDSDFET5F"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const analytics = firebase.analytics();
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-</script>
+<title>Evaluación del Paciente</title>
 
 <style>
-body {font-family: Arial; background:#f0f4f8; margin:0;}
-header {background:#0288d1;color:white;padding:15px; display:flex; justify-content: space-between; align-items:center;}
-header h1 {margin:0; font-size:20px;}
-header button {background:red;color:white;border:none;border-radius:6px;padding:5px 10px;cursor:pointer;}
-.container {padding:20px;text-align:center;}
-input, textarea {padding:10px;margin:5px;width:250px;border-radius:8px;border:1px solid #ccc;}
-button {padding:10px 15px;margin:5px;background:#0288d1;color:white;border:none;border-radius:8px;cursor:pointer;}
-.card {background:white;margin:15px auto;padding:15px;border-radius:10px;width:320px;text-align:left;}
-.historial {background:#ffe0e0;padding:10px;margin-top:10px;}
-.btn-eliminar {background:red; color:white;}
-.nav-buttons {margin-bottom:15px;}
-.nav-buttons button {background:#0288d1;}
+body {
+    font-family: Arial;
+    background:#f0f4f8;
+    margin:0;
+}
+
+/* HEADER */
+header {
+    background:#0288d1;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.btn-home {
+    background:white;
+    color:#0288d1;
+    border:none;
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+/* CONTENIDO */
+.container {
+    padding:20px;
+    text-align:center;
+}
+
+input {
+    padding:10px;
+    border-radius:8px;
+    border:1px solid #ccc;
+    margin:5px;
+}
+
+button {
+    padding:10px 15px;
+    background:#0288d1;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.card {
+    background:white;
+    margin:15px auto;
+    padding:15px;
+    border-radius:10px;
+    width:320px;
+    text-align:left;
+}
+
+.resultado {
+    background:#e3f2fd;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-  <button onclick="window.location.href='index.html'">🏠 Home</button>
-  <h1>Evaluación de Pacientes</h1>
-  <button onclick="window.location.href='historial.html'">📋 Historial</button>
+    <button class="btn-home" onclick="window.location.href='index.html'">🏠 Inicio</button>
+    <h2>Evaluación</h2>
 </header>
 
 <div class="container">
 
-<!-- LOGIN -->
-<div id="login">
-<h2>Login</h2>
-<input id="email" placeholder="Correo"><br>
-<input id="password" type="password" placeholder="Contraseña"><br>
-<button onclick="login()">Entrar</button>
-<button onclick="register()">Registrarse</button>
-</div>
+<h3>Edad del paciente</h3>
+<input type="number" id="edad" placeholder="Edad">
+<button onclick="evaluar()">Evaluar</button>
 
-<!-- APP -->
-<div id="app" style="display:none;">
+<div id="habilidades"></div>
 
-<h2>Agregar paciente</h2>
-<input id="nombre" placeholder="Nombre">
-<input id="edad" type="number" placeholder="Edad"><br>
-<button onclick="crearPaciente()">Guardar</button>
+<button onclick="generar()">Generar recomendaciones</button>
 
-<h2>Buscar paciente</h2>
-<input id="busqueda" placeholder="Buscar por nombre o ID" onkeyup="buscarPaciente()">
-
-<div id="formulario"></div>
-<div id="lista"></div>
-
-<button style="background:red;" onclick="logout()">Cerrar sesión</button>
-
-</div>
+<div id="resultado"></div>
 
 </div>
 
 <script>
-let pacientes = [];
-let pacienteIndex = null;
 
-// Registro
-function register(){
-    const emailVal = document.getElementById("email").value;
-    const passwordVal = document.getElementById("password").value;
-    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
-    auth.createUserWithEmailAndPassword(emailVal,passwordVal)
-        .then(()=>alert("Usuario creado correctamente"))
-        .catch(e=>alert("Error: "+e.message));
-}
-
-// Login
-function login(){
-    const emailVal = document.getElementById("email").value;
-    const passwordVal = document.getElementById("password").value;
-    if(!emailVal || !passwordVal){ alert("Ingresa correo y contraseña"); return; }
-    auth.signInWithEmailAndPassword(emailVal,passwordVal)
-        .catch(e=>alert("Error: "+e.message));
-}
-
-// Logout
-function logout(){ auth.signOut(); }
-
-// Manejar sesión
-auth.onAuthStateChanged(user=>{
-    if(user){
-        document.getElementById("login").style.display="none";
-        document.getElementById("app").style.display="block";
-        cargarDatos();
+// HABILIDADES POR EDAD
+function obtenerHabilidades(edad){
+    if(edad >= 12){
+        return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];
+    } else if(edad >= 10){
+        return ["escribir","resolver problemas matematicos"];
+    } else if(edad >= 5){
+        return ["saltar","dibujar","hablar"];
+    } else if(edad >= 2){
+        return ["caminar","decir palabras sencillas"];
     } else {
-        document.getElementById("login").style.display="block";
-        document.getElementById("app").style.display="none";
+        return ["girar la cabeza","sonreir","llorar"];
     }
-});
-
-// Generar ID
-function generarID(){ return "PAC-"+Math.floor(Math.random()*1000000); }
-
-// Guardar datos
-function guardarDatos(){ const user = auth.currentUser; if(!user) return; db.collection("usuarios").doc(user.uid).set({pacientes}); }
-
-// Cargar datos
-function cargarDatos(){ 
-    const user = auth.currentUser; 
-    if(!user) return; 
-    db.collection("usuarios").doc(user.uid).get()
-    .then(doc=>{ pacientes = doc.exists ? doc.data().pacientes || [] : []; mostrarPacientes(); });
 }
 
-// Crear paciente
-function crearPaciente(){
-    const nombreVal = document.getElementById("nombre").value;
-    const edadVal = document.getElementById("edad").value;
-    if(!nombreVal || !edadVal) return;
-    pacientes.push({id: generarID(), nombre: nombreVal, edad: edadVal, historial:[]});
-    document.getElementById("nombre").value=""; document.getElementById("edad").value="";
-    guardarDatos(); mostrarPacientes();
-}
+// SUGERENCIAS (de tu Python)
+const sugerencias = {
+    "girar la cabeza": ["Ejercicios visuales con juguetes", "Mover objetos a los lados"],
+    "sonreir": ["Juegos de imitación", "Gestos y sonidos alegres"],
+    "llorar": ["Observar estímulos", "Asegurar confort"],
+    "caminar": ["Juegos de equilibrio", "Caminar con apoyo"],
+    "decir palabras sencillas": ["Leer cuentos", "Repetir palabras"],
+    "saltar": ["Saltos en colchoneta", "Juegos con cuerda"],
+    "dibujar": ["Colorear", "Trazar formas"],
+    "hablar": ["Conversaciones", "Cantar canciones"],
+    "escribir": ["Trazar letras", "Copiar palabras"],
+    "resolver problemas matematicos": ["Contar objetos", "Sumas simples"],
+    "desarrollar habilidades sociales": ["Juegos grupales", "Dinámicas sociales"],
+    "tomar decisiones": ["Elegir opciones", "Resolver situaciones"],
+    "planificar el futuro": ["Metas simples", "Organizar actividades"]
+};
 
-// Nuevo registro
-function nuevoRegistro(i){
-    pacienteIndex=i;
-    document.getElementById("formulario").innerHTML=`
-        <input id="noPuede" placeholder="No puede hacer">
-        <textarea id="obs" placeholder="Observaciones"></textarea><br>
-        <button onclick="guardarRegistro()">Guardar</button>
-    `;
-}
+let habilidades = [];
 
-// Guardar registro
-function guardarRegistro(){
-    const noPuedeVal=document.getElementById("noPuede").value;
-    const obsVal=document.getElementById("obs").value;
-    if(!noPuedeVal && !obsVal) return;
-    pacientes[pacienteIndex].historial.push({fecha:new Date().toLocaleDateString(), noPuede:noPuedeVal, obs:obsVal});
-    guardarDatos(); document.getElementById("formulario").innerHTML=""; mostrarPacientes();
-}
+// MOSTRAR HABILIDADES
+function evaluar(){
+    let edad = document.getElementById("edad").value;
+    let cont = document.getElementById("habilidades");
 
-// Eliminar paciente/registro
-function eliminarPaciente(i){ if(!confirm("¿Eliminar paciente?")) return; pacientes.splice(i,1); guardarDatos(); mostrarPacientes(); }
-function eliminarRegistro(p,r){ if(!confirm("¿Eliminar registro?")) return; pacientes[p].historial.splice(r,1); guardarDatos(); mostrarPacientes(); }
+    habilidades = obtenerHabilidades(edad);
 
-// Buscar paciente
-function buscarPaciente(){ mostrarPacientes(document.getElementById("busqueda").value.toLowerCase()); }
+    cont.innerHTML = "<h3>¿Qué NO puede hacer?</h3>";
 
-// Mostrar pacientes
-function mostrarPacientes(filtro=""){
-    const lista=document.getElementById("lista"); lista.innerHTML="";
-    pacientes.forEach((p,i)=>{
-        if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
-            let historialHTML="";
-            p.historial.forEach((h,j)=>{
-                historialHTML+=`
-                <div class="historial">
-                    <b>${h.fecha}</b><br>
-                    ❌ ${h.noPuede}<br>
-                    📝 ${h.obs}<br>
-                    <button class="btn-eliminar" onclick="eliminarRegistro(${i},${j})">Eliminar</button>
-                </div>`;
-            });
-            lista.innerHTML+=`
-            <div class="card">
-                <h3>${p.nombre}</h3>
-                ID: ${p.id}<br>
-                Edad: ${p.edad}<br>
-                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
-                <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️</button>
-                ${historialHTML}
-            </div>`;
-        }
+    habilidades.forEach((h,i)=>{
+        cont.innerHTML += `
+        <div>
+            <input type="checkbox" value="${h}">
+            ${h}
+        </div>`;
     });
 }
+
+// GENERAR RESULTADO
+function generar(){
+    let checks = document.querySelectorAll("input[type=checkbox]:checked");
+    let resultado = document.getElementById("resultado");
+
+    resultado.innerHTML = "";
+
+    if(checks.length === 0){
+        resultado.innerHTML = "<div class='card'>✅ El paciente puede realizar todas las habilidades.</div>";
+        return;
+    }
+
+    checks.forEach(c=>{
+        let habilidad = c.value;
+
+        let lista = sugerencias[habilidad] || ["Actividad personalizada"];
+
+        let html = `
+        <div class="card">
+            <h3>${habilidad}</h3>
+        `;
+
+        lista.forEach(s=>{
+            html += `<div class="resultado">- ${s}</div>`;
+        });
+
+        html += `
+            <div class="resultado">✍️ Agrega tus propias observaciones</div>
+        </div>`;
+
+        resultado.innerHTML += html;
+    });
+}
+
 </script>
 
 </body>
