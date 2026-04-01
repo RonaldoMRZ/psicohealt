@@ -24,6 +24,7 @@ const db = firebase.firestore();
 
 <style>
 body {font-family: Arial; margin:0; background:#f0f4f8;}
+
 header {
     background:#0288d1;
     color:white;
@@ -32,16 +33,18 @@ header {
     justify-content:space-between;
     align-items:center;
 }
+
 header button {
-    background:red;
-    color:white;
     border:none;
     border-radius:8px;
     padding:6px 12px;
     cursor:pointer;
 }
 
-.container {padding:20px;}
+.btn-home {background:white; color:#0288d1;}
+.btn-logout {background:red; color:white;}
+
+.container {padding:20px; text-align:center;}
 
 input, textarea {
     padding:10px;
@@ -67,6 +70,7 @@ button {
     padding:15px;
     border-radius:10px;
     width:340px;
+    text-align:left;
 }
 
 .historial {
@@ -77,6 +81,7 @@ button {
 }
 
 .btn-eliminar {background:red;}
+
 .form-registro {
     background:#e3f2fd;
     padding:10px;
@@ -89,9 +94,9 @@ button {
 <body>
 
 <header>
-    <button onclick="window.location.href='index.html'">🏠 Home</button>
+    <button class="btn-home" onclick="window.location.href='index.html'">🏠 Home</button>
     <h3>Historial de Pacientes</h3>
-    <button onclick="logout()">Cerrar sesión</button>
+    <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
 </header>
 
 <div class="container">
@@ -111,7 +116,6 @@ button {
 <script>
 
 let pacientes = [];
-let pacienteIndex = null;
 
 // 🔐 sesión
 auth.onAuthStateChanged(user=>{
@@ -130,34 +134,46 @@ function generarID(){
     return "PAC-"+Date.now();
 }
 
-// 💾 GUARDAR (IMPORTANTE FIX)
-function guardarDatos(){
+// 💾 GUARDAR (FIX PRO)
+async function guardarDatos(){
     const user = auth.currentUser;
     if(!user) return;
 
-    db.collection("usuarios")
-    .doc(user.uid)
-    .set({ pacientes: pacientes }, { merge:true });
+    try {
+        await db.collection("usuarios")
+        .doc(user.uid)
+        .set({ pacientes: pacientes }, { merge:true });
+
+        console.log("✅ Guardado correcto");
+    } catch(e){
+        console.error(e);
+        alert("Error al guardar");
+    }
 }
 
 // 📥 CARGAR
-function cargarDatos(){
+async function cargarDatos(){
     const user = auth.currentUser;
     if(!user) return;
 
-    db.collection("usuarios").doc(user.uid).get()
-    .then(doc=>{
+    try {
+        const doc = await db.collection("usuarios").doc(user.uid).get();
+
         if(doc.exists){
             pacientes = doc.data().pacientes || [];
         } else {
             pacientes = [];
         }
+
         mostrarPacientes();
-    });
+    } catch(e){
+        console.error(e);
+        alert("Error al cargar datos");
+    }
 }
 
 // ➕ CREAR PACIENTE
-function crearPaciente(){
+async function crearPaciente(){
     let nombre = document.getElementById("nombre").value;
     let edad = document.getElementById("edad").value;
 
@@ -173,17 +189,13 @@ function crearPaciente(){
     document.getElementById("nombre").value="";
     document.getElementById("edad").value="";
 
-    guardarDatos();
+    await guardarDatos();
     mostrarPacientes();
 }
 
-// 📝 MOSTRAR FORMULARIO CORRECTO
+// 📝 FORMULARIO
 function nuevoRegistro(i){
-    pacienteIndex = i;
-
-    let cont = document.getElementById("form-"+i);
-
-    cont.innerHTML = `
+    document.getElementById("form-"+i).innerHTML = `
     <div class="form-registro">
         <input id="noPuede${i}" placeholder="No puede hacer"><br>
         <textarea id="obs${i}" placeholder="Observaciones"></textarea><br>
@@ -192,9 +204,8 @@ function nuevoRegistro(i){
     `;
 }
 
-// 💾 GUARDAR REGISTRO (FIX CLAVE)
-function guardarRegistro(i){
-
+// 💾 GUARDAR REGISTRO
+async function guardarRegistro(i){
     let noPuede = document.getElementById("noPuede"+i).value;
     let obs = document.getElementById("obs"+i).value;
 
@@ -206,22 +217,22 @@ function guardarRegistro(i){
         obs
     });
 
-    guardarDatos();
+    await guardarDatos();
     mostrarPacientes();
 }
 
 // 🗑️ ELIMINAR
-function eliminarPaciente(i){
+async function eliminarPaciente(i){
     if(!confirm("Eliminar paciente?")) return;
     pacientes.splice(i,1);
-    guardarDatos();
+    await guardarDatos();
     mostrarPacientes();
 }
 
-function eliminarRegistro(p,r){
+async function eliminarRegistro(p,r){
     if(!confirm("Eliminar registro?")) return;
     pacientes[p].historial.splice(r,1);
-    guardarDatos();
+    await guardarDatos();
     mostrarPacientes();
 }
 
