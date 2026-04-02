@@ -56,6 +56,7 @@ button {
     margin:5px;
 }
 
+/* TARJETAS */
 .card {
     background:white;
     margin:20px auto;
@@ -66,6 +67,7 @@ button {
     box-shadow:0 4px 10px rgba(0,0,0,0.2);
 }
 
+/* CHECKBOX */
 .check-item {
     display:flex;
     align-items:center;
@@ -73,6 +75,7 @@ button {
     margin:5px 0;
 }
 
+/* RESULTADO */
 .resultado {
     background:#e3f2fd;
     padding:8px;
@@ -80,10 +83,37 @@ button {
     margin-top:5px;
 }
 
-img, video {
+/* MARCOS */
+.marco-img {
     width:100%;
-    margin-top:10px;
+    height:200px;
+    border:2px dashed #0288d1;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#f9f9f9;
+}
+
+.marco-img img {
+    max-width:100%;
+    max-height:100%;
     border-radius:8px;
+}
+
+.marco-video {
+    width:100%;
+    height:200px;
+    border:2px dashed #0288d1;
+    border-radius:10px;
+    overflow:hidden;
+    background:black;
+}
+
+.marco-video iframe {
+    width:100%;
+    height:100%;
+    border:none;
 }
 </style>
 </head>
@@ -93,6 +123,7 @@ img, video {
 <header>
     <button class="btn-home" onclick="window.location.href='index.html'">🏠 Inicio</button>
     <h2>Evaluación</h2>
+    <div></div>
 </header>
 
 <div class="container">
@@ -128,19 +159,19 @@ function obtenerHabilidades(edad){
 
 // EJERCICIOS
 const sugerencias = {
-"caminar": ["Caminar con apoyo","Ejercicios de equilibrio"],
-"hablar": ["Repetición de palabras","Leer cuentos"],
-"saltar": ["Saltos en colchoneta","Juego con cuerda"],
-"dibujar": ["Colorear","Trazar líneas"],
-"escribir": ["Copiar palabras","Trazar letras"],
-"resolver problemas matematicos": ["Contar objetos","Sumas simples"],
-"desarrollar habilidades sociales": ["Juegos grupales","Interacción social"],
-"tomar decisiones": ["Elegir opciones","Resolver situaciones"],
-"planificar el futuro": ["Metas simples","Organizar actividades"],
-"decir palabras sencillas": ["Repetición","Asociar imágenes"],
-"girar la cabeza": ["Seguimiento visual","Mover objetos"],
-"sonreir": ["Imitación facial","Juegos"],
-"llorar": ["Reconocer emociones","Estimulación"]
+    "caminar": ["Caminar con apoyo","Ejercicios de equilibrio"],
+    "hablar": ["Repetición de palabras","Leer cuentos"],
+    "saltar": ["Saltos en colchoneta","Juego con cuerda"],
+    "dibujar": ["Colorear","Trazar líneas"],
+    "escribir": ["Copiar palabras","Trazar letras"],
+    "resolver problemas matematicos": ["Contar objetos","Sumas simples"],
+    "desarrollar habilidades sociales": ["Juegos grupales","Interacción social"],
+    "tomar decisiones": ["Elegir opciones","Resolver situaciones"],
+    "planificar el futuro": ["Metas simples","Organizar actividades"],
+    "decir palabras sencillas": ["Repetición","Asociar imágenes"],
+    "girar la cabeza": ["Seguimiento visual","Mover objetos"],
+    "sonreir": ["Imitación facial","Juegos"],
+    "llorar": ["Reconocer emociones","Estimulación"]
 };
 
 let habilidades = [];
@@ -152,7 +183,7 @@ function evaluar(){
 
     habilidades = obtenerHabilidades(edad);
 
-    cont.innerHTML = "<h3>¿Qué NO puede hacer?</h3>";
+    cont.innerHTML = "<h3>Selecciona lo que NO puede hacer:</h3>";
 
     habilidades.forEach(h=>{
         cont.innerHTML += `
@@ -163,7 +194,7 @@ function evaluar(){
     });
 }
 
-// GENERAR RESULTADO
+// GENERAR RESULTADOS
 function generar(){
     let checks = document.querySelectorAll("input[type=checkbox]:checked");
     let resultado = document.getElementById("resultado");
@@ -175,7 +206,7 @@ function generar(){
         return;
     }
 
-    checks.forEach((c,index)=>{
+    checks.forEach((c)=>{
         let habilidad = c.value;
         let lista = sugerencias[habilidad] || ["Actividad personalizada"];
 
@@ -186,41 +217,25 @@ function generar(){
             html += `<div class="resultado">✔ ${e}</div>`;
         });
 
-        // SUBIR IMAGEN Y VIDEO
+        // 🔥 MARCOS
         html += `
         <br>
-        <b>Subir imagen del ejercicio:</b><br>
-        <input type="file" accept="image/*" onchange="mostrarImagen(event, ${index})">
-        <div id="verImg${index}"></div>
+        <b>Imagen del ejercicio:</b>
+        <div class="marco-img">
+            <img src="">
+        </div>
 
         <br>
-        <b>Subir video del ejercicio:</b><br>
-        <input type="file" accept="video/*" onchange="mostrarVideo(event, ${index})">
-        <div id="verVid${index}"></div>
+
+        <b>Video del ejercicio:</b>
+        <div class="marco-video">
+            <iframe src=""></iframe>
+        </div>
 
         </div>`;
 
         resultado.innerHTML += html;
     });
-}
-
-// MOSTRAR IMAGEN
-function mostrarImagen(event, i){
-    let file = event.target.files[0];
-    if(file){
-        let url = URL.createObjectURL(file);
-        document.getElementById("verImg"+i).innerHTML = `<img src="${url}">`;
-    }
-}
-
-// MOSTRAR VIDEO
-function mostrarVideo(event, i){
-    let file = event.target.files[0];
-    if(file){
-        let url = URL.createObjectURL(file);
-        document.getElementById("verVid"+i).innerHTML =
-            `<video controls src="${url}"></video>`;
-    }
 }
 
 </script>
