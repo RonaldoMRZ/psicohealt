@@ -2,8 +2,10 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Historial</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Historial - Sistema Clínico</title>
 
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -19,28 +21,82 @@ firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// 🔥 FORZAR CONEXIÓN (SOLUCIÓN ERROR OFFLINE)
+db.enableNetwork().catch(()=>{});
 </script>
 
 <style>
-body {font-family: Arial; background:#f0f4f8; margin:0;}
-header {background:#0288d1;color:white;padding:15px;display:flex;justify-content:space-between;}
-button {padding:8px 12px;border:none;border-radius:6px;cursor:pointer;}
-.btn-home {background:white;color:#0288d1;}
-.btn-logout {background:red;color:white;}
-.container {padding:20px;text-align:center;}
-input, textarea {padding:10px;margin:5px;width:250px;border-radius:6px;border:1px solid #ccc;}
-.card {background:white;margin:15px auto;padding:15px;border-radius:10px;width:340px;text-align:left;}
-.historial {background:#ffe0e0;padding:10px;margin-top:10px;border-radius:8px;}
-.btn-eliminar {background:red;color:white;}
+body {font-family: Arial; margin:0; background:#f0f4f8;}
+header {
+    background:#0288d1;
+    color:white;
+    padding:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+header button {
+    background:red;
+    color:white;
+    border:none;
+    border-radius:8px;
+    padding:6px 12px;
+    cursor:pointer;
+}
+
+.container {padding:20px;}
+
+input, textarea {
+    padding:10px;
+    margin:5px;
+    width:250px;
+    border-radius:8px;
+    border:1px solid #ccc;
+}
+
+button {
+    padding:10px 15px;
+    margin:5px;
+    background:#0288d1;
+    color:white;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.card {
+    background:white;
+    margin:15px auto;
+    padding:15px;
+    border-radius:10px;
+    width:340px;
+}
+
+.historial {
+    background:#ffe0e0;
+    padding:10px;
+    margin-top:10px;
+    border-radius:8px;
+}
+
+.btn-eliminar {background:red;}
+
+.form-registro {
+    background:#e3f2fd;
+    padding:10px;
+    border-radius:8px;
+    margin-top:10px;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<button class="btn-home" onclick="window.location.href='index.html'">🏠 Home</button>
-<h3>Historial</h3>
-<button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+    <button onclick="window.location.href='index.html'">🏠 Home</button>
+    <h3>Historial de Pacientes</h3>
+    <button onclick="logout()">Cerrar sesión</button>
 </header>
 
 <div class="container">
@@ -61,77 +117,64 @@ input, textarea {padding:10px;margin:5px;width:250px;border-radius:6px;border:1p
 
 let pacientes = [];
 
-// 🔐 SESIÓN SEGURA
-auth.onAuthStateChanged(async user=>{
+// 🔐 SESIÓN
+auth.onAuthStateChanged(user=>{
     if(!user){
-        alert("Debes iniciar sesión");
-        window.location.href = "index.html";
+        window.location.href="index.html";
     } else {
         console.log("Usuario activo:", user.uid);
-        await cargarDatos();
+        cargarDatos();
     }
 });
 
-// LOGOUT
-function logout(){
-    auth.signOut();
-}
+function logout(){ auth.signOut(); }
 
-// ID
+// 🆔 ID
 function generarID(){
     return "PAC-"+Date.now();
 }
 
-// 💾 GUARDAR
-async function guardarDatos(){
-    try{
-        const user = auth.currentUser;
-        if(!user) return;
+// 💾 GUARDAR (FIX REAL)
+function guardarDatos(){
+    const user = auth.currentUser;
+    if(!user) return;
 
-        await db.collection("usuarios")
-        .doc(user.uid)
-        .set({ pacientes }, { merge:true });
-
-        console.log("Guardado OK");
-
-    }catch(e){
-        console.error("Error guardando:", e);
-        alert("Error al guardar: " + e.message);
-    }
+    db.collection("usuarios")
+    .doc(user.uid)
+    .set({ pacientes: pacientes }, { merge:true })
+    .then(()=> console.log("Guardado OK"))
+    .catch(e=> console.error("Error guardando:", e));
 }
 
-// 📥 CARGAR
-async function cargarDatos(){
-    try{
-        const user = auth.currentUser;
-        if(!user) return;
+// 📥 CARGAR (FIX REAL)
+function cargarDatos(){
+    const user = auth.currentUser;
+    if(!user) return;
 
-        const doc = await db.collection("usuarios")
-        .doc(user.uid)
-        .get();
-
+    db.collection("usuarios").doc(user.uid).get()
+    .then(doc=>{
         if(doc.exists){
             pacientes = doc.data().pacientes || [];
         } else {
             pacientes = [];
         }
-
-        console.log("Datos cargados:", pacientes);
-
         mostrarPacientes();
-
-    }catch(e){
-        console.error("Error cargando:", e);
-        alert("Error al cargar datos: " + e.message);
-    }
+    })
+    .catch(e=>{
+        console.error("ERROR:", e);
+        alert("Error al cargar datos");
+    });
 }
 
-// CREAR PACIENTE
-async function crearPaciente(){
+// ➕ CREAR PACIENTE
+function crearPaciente(){
     let nombre = document.getElementById("nombre").value;
     let edad = document.getElementById("edad").value;
 
-    if(!nombre || !edad) return alert("Completa los datos");
+    if(!nombre || !edad){
+        alert("Completa datos");
+        return;
+    }
 
     pacientes.push({
         id: generarID(),
@@ -143,58 +186,63 @@ async function crearPaciente(){
     document.getElementById("nombre").value="";
     document.getElementById("edad").value="";
 
-    await guardarDatos();
+    guardarDatos();
     mostrarPacientes();
 }
 
-// NUEVO REGISTRO
+// 📝 FORMULARIO BIEN HECHO
 function nuevoRegistro(i){
     document.getElementById("form-"+i).innerHTML = `
-        <input id="no${i}" placeholder="No puede hacer"><br>
+    <div class="form-registro">
+        <input id="noPuede${i}" placeholder="No puede hacer"><br>
         <textarea id="obs${i}" placeholder="Observaciones"></textarea><br>
         <button onclick="guardarRegistro(${i})">Guardar</button>
-    `;
+    </div>`;
 }
 
-// GUARDAR REGISTRO
-async function guardarRegistro(i){
-    let no = document.getElementById("no"+i).value;
+// 💾 GUARDAR REGISTRO (SIN BUG)
+function guardarRegistro(i){
+
+    let noPuede = document.getElementById("noPuede"+i).value;
     let obs = document.getElementById("obs"+i).value;
 
-    if(!no && !obs) return;
+    if(!noPuede && !obs){
+        alert("Escribe algo");
+        return;
+    }
 
     pacientes[i].historial.push({
         fecha: new Date().toLocaleDateString(),
-        noPuede: no,
+        noPuede,
         obs
     });
 
-    await guardarDatos();
+    guardarDatos();
     mostrarPacientes();
 }
 
-// ELIMINAR
-async function eliminarPaciente(i){
+// 🗑️ ELIMINAR
+function eliminarPaciente(i){
     if(!confirm("Eliminar paciente?")) return;
     pacientes.splice(i,1);
-    await guardarDatos();
+    guardarDatos();
     mostrarPacientes();
 }
 
-async function eliminarRegistro(p,r){
+function eliminarRegistro(p,r){
     if(!confirm("Eliminar registro?")) return;
     pacientes[p].historial.splice(r,1);
-    await guardarDatos();
+    guardarDatos();
     mostrarPacientes();
 }
 
-// BUSCAR
+// 🔍 BUSCAR
 function buscarPaciente(){
     let t = document.getElementById("busqueda").value.toLowerCase();
     mostrarPacientes(t);
 }
 
-// MOSTRAR
+// 📋 MOSTRAR (FIX UI)
 function mostrarPacientes(filtro=""){
     let lista = document.getElementById("lista");
     lista.innerHTML="";
@@ -202,9 +250,9 @@ function mostrarPacientes(filtro=""){
     pacientes.forEach((p,i)=>{
         if(p.nombre.toLowerCase().includes(filtro) || p.id.toLowerCase().includes(filtro)){
 
-            let hist="";
+            let hist = "";
             p.historial.forEach((h,j)=>{
-                hist+=`
+                hist += `
                 <div class="historial">
                     <b>${h.fecha}</b><br>
                     ❌ ${h.noPuede}<br>
@@ -213,13 +261,13 @@ function mostrarPacientes(filtro=""){
                 </div>`;
             });
 
-            lista.innerHTML+=`
+            lista.innerHTML += `
             <div class="card">
                 <h3>${p.nombre}</h3>
                 ID: ${p.id}<br>
                 Edad: ${p.edad}<br>
 
-                <button onclick="nuevoRegistro(${i})">➕ Registro</button>
+                <button onclick="nuevoRegistro(${i})">➕ Nuevo Registro</button>
                 <button class="btn-eliminar" onclick="eliminarPaciente(${i})">🗑️</button>
 
                 <div id="form-${i}"></div>
@@ -229,6 +277,7 @@ function mostrarPacientes(filtro=""){
         }
     });
 }
+
 </script>
 
 </body>
