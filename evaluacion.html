@@ -72,7 +72,28 @@ button {
     display:flex;
     align-items:center;
     gap:10px;
-    margin:5px 0;
+    margin:8px 0;
+    padding:8px;
+    border-radius:8px;
+    transition:0.3s;
+    cursor:pointer;
+}
+
+/* hover */
+.check-item:hover {
+    background:#e3f2fd;
+}
+
+/* seleccionado */
+.check-item.activo {
+    background:#ffebee;
+    border-left:5px solid red;
+}
+
+/* texto seleccionado */
+.check-item.activo label {
+    color:red;
+    font-weight:bold;
 }
 
 /* RESULTADO */
@@ -81,6 +102,14 @@ button {
     padding:8px;
     border-radius:6px;
     margin-top:5px;
+}
+
+/* CONTENEDOR CHECKS */
+#listaChecks {
+    background:white;
+    padding:10px;
+    border-radius:10px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
 }
 
 /* MARCOS */
@@ -183,15 +212,34 @@ function evaluar(){
 
     habilidades = obtenerHabilidades(edad);
 
-    cont.innerHTML = "<h3>Selecciona lo que NO puede hacer:</h3>";
+    cont.innerHTML = `
+    <h3>Selecciona lo que NO puede hacer:</h3>
+    <div id="listaChecks"></div>
+    `;
 
-    habilidades.forEach(h=>{
-        cont.innerHTML += `
-        <div class="check-item">
-            <input type="checkbox" value="${h}">
+    let lista = document.getElementById("listaChecks");
+
+    habilidades.forEach((h,i)=>{
+        lista.innerHTML += `
+        <div class="check-item" onclick="toggleCheck(${i})">
+            <input type="checkbox" id="check${i}" value="${h}">
             <label>${h}</label>
         </div>`;
     });
+}
+
+// ACTIVAR CHECK
+function toggleCheck(i){
+    let check = document.getElementById("check"+i);
+    let item = check.parentElement;
+
+    check.checked = !check.checked;
+
+    if(check.checked){
+        item.classList.add("activo");
+    } else {
+        item.classList.remove("activo");
+    }
 }
 
 // GENERAR RESULTADOS
@@ -217,7 +265,6 @@ function generar(){
             html += `<div class="resultado">✔ ${e}</div>`;
         });
 
-        // 🔥 MARCOS
         html += `
         <br>
         <b>Imagen del ejercicio:</b>
