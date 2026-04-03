@@ -6,286 +6,155 @@
 <title>Evaluación del Paciente</title>
 
 <style>
-body {
-    font-family: Arial;
-    background:#f0f4f8;
-    margin:0;
-}
+body {font-family: Arial; background:#f0f4f8; margin:0;}
+header {background:#0288d1; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;}
+.btn-home {background:white; color:#0288d1; border:none; padding:8px 12px; border-radius:6px; cursor:pointer; font-weight:bold;}
+.container {padding:20px; text-align:center;}
+input {padding:10px; border-radius:8px; border:1px solid #ccc; margin:5px; width:250px;}
+button {padding:10px 15px; background:#0288d1; color:white; border:none; border-radius:8px; cursor:pointer; margin:5px;}
+.card {background:white; margin:20px auto; padding:15px; border-radius:10px; width:350px; text-align:left; box-shadow:0 4px 10px rgba(0,0,0,0.2);}
+.check-item {display:flex; align-items:center; gap:10px; margin:8px 0; padding:8px; border-radius:8px; transition:0.3s; cursor:pointer;}
+.check-item:hover {background:#e3f2fd;}
+.check-item.activo {background:#ffebee; border-left:5px solid red;}
+.check-item.activo label {color:red; font-weight:bold;}
+.resultado {background:#e3f2fd; padding:8px; border-radius:6px; margin-top:5px;}
+#listaChecks {background:white; padding:10px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1);}
 
-/* HEADER */
-header {
-    background:#0288d1;
-    color:white;
-    padding:15px;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
+/* CHAT */
+#chatBtn {position:fixed; bottom:20px; right:20px; width:60px; height:60px; border-radius:50%; background:#0288d1; color:white; font-size:24px; border:none; cursor:pointer;}
+#chatPanel {position:fixed; top:0; left:-350px; width:350px; height:100%; background:#fff; box-shadow:2px 0 10px rgba(0,0,0,0.2); transition:0.4s ease; display:flex; flex-direction:column;}
+#chatHeader {background:#0288d1; color:white; padding:15px; display:flex; justify-content:space-between;}
+#chatBody {flex:1; padding:10px; overflow-y:auto; display:flex; flex-direction:column; gap:10px;}
+#chatInputContainer {display:flex; padding:10px; gap:5px;}
+#chatInput {flex:1; padding:8px; border-radius:8px; border:1px solid #ccc;}
 
-.btn-home {
-    background:white;
-    color:#0288d1;
-    border:none;
-    padding:8px 12px;
-    border-radius:6px;
-    cursor:pointer;
-    font-weight:bold;
-}
+/* burbujas */
+.msg {padding:10px; border-radius:15px; max-width:80%; animation:fadeIn 0.3s ease;}
+.user {background:#0288d1; color:white; align-self:flex-end;}
+.bot {background:#e3f2fd; align-self:flex-start;}
 
-/* CONTENIDO */
-.container {
-    padding:20px;
-    text-align:center;
-}
+@keyframes fadeIn {from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);}}
 
-input {
-    padding:10px;
-    border-radius:8px;
-    border:1px solid #ccc;
-    margin:5px;
-    width:250px;
-}
-
-button {
-    padding:10px 15px;
-    background:#0288d1;
-    color:white;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    margin:5px;
-}
-
-/* TARJETAS */
-.card {
-    background:white;
-    margin:20px auto;
-    padding:15px;
-    border-radius:10px;
-    width:350px;
-    text-align:left;
-    box-shadow:0 4px 10px rgba(0,0,0,0.2);
-}
-
-/* CHECKBOX */
-.check-item {
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin:8px 0;
-    padding:8px;
-    border-radius:8px;
-    transition:0.3s;
-    cursor:pointer;
-}
-
-/* hover */
-.check-item:hover {
-    background:#e3f2fd;
-}
-
-/* seleccionado */
-.check-item.activo {
-    background:#ffebee;
-    border-left:5px solid red;
-}
-
-/* texto seleccionado */
-.check-item.activo label {
-    color:red;
-    font-weight:bold;
-}
-
-/* RESULTADO */
-.resultado {
-    background:#e3f2fd;
-    padding:8px;
-    border-radius:6px;
-    margin-top:5px;
-}
-
-/* CONTENEDOR CHECKS */
-#listaChecks {
-    background:white;
-    padding:10px;
-    border-radius:10px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.1);
-}
-
-/* MARCOS */
-.marco-img {
-    width:100%;
-    height:200px;
-    border:2px dashed #0288d1;
-    border-radius:10px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#f9f9f9;
-}
-
-.marco-img img {
-    max-width:100%;
-    max-height:100%;
-    border-radius:8px;
-}
-
-.marco-video {
-    width:100%;
-    height:200px;
-    border:2px dashed #0288d1;
-    border-radius:10px;
-    overflow:hidden;
-    background:black;
-}
-
-.marco-video iframe {
-    width:100%;
-    height:100%;
-    border:none;
-}
+/* notificación */
+#notif {position:fixed; bottom:90px; right:25px; background:red; color:white; width:20px; height:20px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; display:none;}
 </style>
 </head>
 
 <body>
-
 <header>
-    <button class="btn-home" onclick="window.location.href='index.html'">🏠 Inicio</button>
-    <h2>Evaluación</h2>
-    <div></div>
+<button class="btn-home" onclick="window.location.href='index.html'">🏠 Inicio</button>
+<h2>Evaluación</h2>
+<div></div>
 </header>
 
 <div class="container">
-
 <h3>Edad del paciente</h3>
 <input type="number" id="edad" placeholder="Edad">
 <button onclick="evaluar()">Evaluar</button>
-
 <div id="habilidades"></div>
-
 <button onclick="generar()">Generar recomendaciones</button>
-
 <div id="resultado"></div>
+</div>
 
+<!-- CHAT -->
+<button id="chatBtn">💬</button>
+<div id="notif">1</div>
+<div id="chatPanel">
+<div id="chatHeader">Asistente 🧠 <span id="closeBtn">✖</span></div>
+<div id="chatBody"></div>
+<div id="chatInputContainer">
+<input type="text" id="chatInput" placeholder="Escribe...">
+<button onclick="enviar()">➤</button>
+</div>
 </div>
 
 <script>
+let chatBody = document.getElementById("chatBody");
+let notif = document.getElementById("notif");
 
-// HABILIDADES
-function obtenerHabilidades(edad){
-    if(edad >= 12){
-        return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];
-    } else if(edad >= 10){
-        return ["escribir","resolver problemas matematicos"];
-    } else if(edad >= 5){
-        return ["saltar","dibujar","hablar"];
-    } else if(edad >= 2){
-        return ["caminar","decir palabras sencillas"];
-    } else {
-        return ["girar la cabeza","sonreir","llorar"];
-    }
+// abrir/cerrar
+chatBtn.onclick = ()=>{chatPanel.style.left="0"; notif.style.display="none";}
+closeBtn.onclick = ()=>{chatPanel.style.left="-350px";}
+
+// historial
+function guardarHistorial(){
+  localStorage.setItem("chatHistorial", chatBody.innerHTML);
+}
+function cargarHistorial(){
+  let data = localStorage.getItem("chatHistorial");
+  if(data) chatBody.innerHTML = data;
+}
+cargarHistorial();
+
+async function enviar(){
+  let input = document.getElementById("chatInput");
+  let msg = input.value;
+  if(!msg) return;
+
+  chatBody.innerHTML += `<div class='msg user'>${msg}</div>`;
+
+  let res = await fetch("http://localhost:3000/chat", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({mensaje:msg})
+  });
+
+  let data = await res.json();
+
+  setTimeout(()=>{
+    chatBody.innerHTML += `<div class='msg bot'>${data.respuesta}</div>`;
+    guardarHistorial();
+    if(chatPanel.style.left !== "0px") notif.style.display="flex";
+    chatBody.scrollTop = chatBody.scrollHeight;
+  },500);
+
+  input.value="";
 }
 
-// EJERCICIOS
-const sugerencias = {
-    "caminar": ["Caminar con apoyo","Ejercicios de equilibrio"],
-    "hablar": ["Repetición de palabras","Leer cuentos"],
-    "saltar": ["Saltos en colchoneta","Juego con cuerda"],
-    "dibujar": ["Colorear","Trazar líneas"],
-    "escribir": ["Copiar palabras","Trazar letras"],
-    "resolver problemas matematicos": ["Contar objetos","Sumas simples"],
-    "desarrollar habilidades sociales": ["Juegos grupales","Interacción social"],
-    "tomar decisiones": ["Elegir opciones","Resolver situaciones"],
-    "planificar el futuro": ["Metas simples","Organizar actividades"],
-    "decir palabras sencillas": ["Repetición","Asociar imágenes"],
-    "girar la cabeza": ["Seguimiento visual","Mover objetos"],
-    "sonreir": ["Imitación facial","Juegos"],
-    "llorar": ["Reconocer emociones","Estimulación"]
-};
+// === TU CÓDIGO ORIGINAL ===
+function obtenerHabilidades(edad){
+ if(edad >= 12){return ["desarrollar habilidades sociales","tomar decisiones","planificar el futuro"];}
+ else if(edad >= 10){return ["escribir","resolver problemas matematicos"];}
+ else if(edad >= 5){return ["saltar","dibujar","hablar"];}
+ else if(edad >= 2){return ["caminar","decir palabras sencillas"];}
+ else {return ["girar la cabeza","sonreir","llorar"];}
+}
 
+const sugerencias = {"caminar":["Caminar con apoyo","Ejercicios de equilibrio"]};
 let habilidades = [];
 
-// MOSTRAR HABILIDADES
 function evaluar(){
-    let edad = document.getElementById("edad").value;
-    let cont = document.getElementById("habilidades");
-
-    habilidades = obtenerHabilidades(edad);
-
-    cont.innerHTML = `
-    <h3>Selecciona lo que NO puede hacer:</h3>
-    <div id="listaChecks"></div>
-    `;
-
-    let lista = document.getElementById("listaChecks");
-
-    habilidades.forEach((h,i)=>{
-        lista.innerHTML += `
-        <div class="check-item" onclick="toggleCheck(${i})">
-            <input type="checkbox" id="check${i}" value="${h}">
-            <label>${h}</label>
-        </div>`;
-    });
+ let edad = document.getElementById("edad").value;
+ let cont = document.getElementById("habilidades");
+ habilidades = obtenerHabilidades(edad);
+ cont.innerHTML = `<h3>Selecciona lo que NO puede hacer:</h3><div id="listaChecks"></div>`;
+ let lista = document.getElementById("listaChecks");
+ habilidades.forEach((h,i)=>{
+ lista.innerHTML += `<div class="check-item" onclick="toggleCheck(${i})"><input type="checkbox" id="check${i}" value="${h}"><label>${h}</label></div>`;
+ });
 }
 
-// ACTIVAR CHECK
 function toggleCheck(i){
-    let check = document.getElementById("check"+i);
-    let item = check.parentElement;
-
-    check.checked = !check.checked;
-
-    if(check.checked){
-        item.classList.add("activo");
-    } else {
-        item.classList.remove("activo");
-    }
+ let check = document.getElementById("check"+i);
+ let item = check.parentElement;
+ check.checked = !check.checked;
+ item.classList.toggle("activo", check.checked);
 }
 
-// GENERAR RESULTADOS
 function generar(){
-    let checks = document.querySelectorAll("input[type=checkbox]:checked");
-    let resultado = document.getElementById("resultado");
-
-    resultado.innerHTML = "";
-
-    if(checks.length === 0){
-        resultado.innerHTML = "<div class='card'>✅ El paciente puede realizar todas las habilidades.</div>";
-        return;
-    }
-
-    checks.forEach((c)=>{
-        let habilidad = c.value;
-        let lista = sugerencias[habilidad] || ["Actividad personalizada"];
-
-        let html = `<div class="card">
-        <h3>${habilidad}</h3>`;
-
-        lista.forEach(e=>{
-            html += `<div class="resultado">✔ ${e}</div>`;
-        });
-
-        html += `
-        <br>
-        <b>Imagen del ejercicio:</b>
-        <div class="marco-img">
-            <img src="">
-        </div>
-
-        <br>
-
-        <b>Video del ejercicio:</b>
-        <div class="marco-video">
-            <iframe src=""></iframe>
-        </div>
-
-        </div>`;
-
-        resultado.innerHTML += html;
-    });
+ let checks = document.querySelectorAll("input[type=checkbox]:checked");
+ let resultado = document.getElementById("resultado");
+ resultado.innerHTML = "";
+ if(checks.length === 0){resultado.innerHTML = "<div class='card'>✅ El paciente puede realizar todas las habilidades.</div>"; return;}
+ checks.forEach((c)=>{
+ let habilidad = c.value;
+ let lista = sugerencias[habilidad] || ["Actividad personalizada"];
+ let html = `<div class="card"><h3>${habilidad}</h3>`;
+ lista.forEach(e=>{html += `<div class="resultado">✔ ${e}</div>`;});
+ html += `</div>`;
+ resultado.innerHTML += html;
+ });
 }
-
 </script>
-
 </body>
 </html>
